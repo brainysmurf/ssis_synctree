@@ -51,9 +51,9 @@ class AutosendStaffImporter(AutosendImporter):
         Update the status ensuring we indicate secondary
         TODO: status should be a list
         """
-        if kwargs.get('_status') == '112':
-            obj._status = '112'
-        return obj
+        obj._sections.add(obj._section)
+        obj._sections.add(kwargs.get('_section'))
+        return None
 
     def kwargs_preprocessor(self, kwargs):
         kwargs['_active'] = kwargs['_active'] == '1'

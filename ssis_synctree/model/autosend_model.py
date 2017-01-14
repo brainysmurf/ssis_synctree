@@ -111,8 +111,8 @@ class AutosendParents(BaseParents):
 
 @property_interface(
     'lastfirst username email lastname firstname '  
-    '_active _section _cohorts _dunno ',
-    lastfirst='', _dbid='', email='', _dunno='', _active='', _title='', _section=''
+    '_active _section _cohorts _dunno _sections',
+    lastfirst='', _dbid='', email='', _dunno='', _active='', _title='', _section='', _sections=set()
 )
 class AutosendStaff(BaseStaff):
     # For those that might have children associated to their teacher account
