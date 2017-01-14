@@ -1,0 +1,9 @@
+*.pyc
+*.pyo
+*.json
+*.egg-info
+*.sublime-workspace
+*.sublime-project
+.cache
+.python-version
+*.ini
