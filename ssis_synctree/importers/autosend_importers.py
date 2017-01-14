@@ -1,4 +1,4 @@
-import gns;import os
+import os
 
 from synctree.importers.default_importer import DefaultImporter
 from synctree.importers.csv_importer import CSVImporter, TranslatedCSVImporter

@@ -1,5 +1,4 @@
 #from ssis_synctree.trees import MoodleTree
-import gns
 from synctree.importers.db_importer import PostgresDBImporter
 from ssis_synctree.moodle.MoodleInterface import MoodleInterface
 
@@ -303,7 +302,6 @@ class HuesReporter:
         hues.error(f"{result.method} : {result.info}")
 
     def exception(self, action, result):
-        #import gns;gns.tutorial("STop", stop=True)
         hues.error(f'EXCEPTION: {result.method}: {result.info}')
 
     def not_implemented(self, action, result):

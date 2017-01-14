@@ -1,4 +1,4 @@
-import gns;from synctree.importers.db_importer import PostgresDBImporter
+from synctree.importers.db_importer import PostgresDBImporter
 from ssis_synctree.moodle.MoodleInterface import MoodleInterface
 import ssis_synctree_settings
 from collections import defaultdict
