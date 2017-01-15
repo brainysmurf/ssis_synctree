@@ -323,6 +323,7 @@ class moodlephp
 
         $group_data = new stdClass;
         $group_data->courseid = $course->id;
+        $group_data->description = 'psmdlsyncer';
         $group_data->idnumber = $group_id;
         $group_data->name = $group_name;
 

@@ -36,13 +36,19 @@ class MoodleTemplate(DefaultTemplate):
     _exceptions = extend_template_exceptions('user_column_map php moodledb courses users')
 
     def __init__(self):
+        """
+        Sets up state so that we guarantee that things won't be re-created once we have them
+        """
         super().__init__()
         self.moodledb = MoodleDB()
         self.php = PHP()
         self.courses = []
+        self.groups = []
         self.users = {}
         for course in [c for c in self.moodledb.get_rows_in_table('courses') if c.idnumber]:
             self.courses.append( course.idnumber )
+        for group in [c for c in self.moodledb.get_rows_in_table('groups') if c.idnumber]:
+            self.groups.append( group.idnumber )
         for user in [c for c in self.moodledb.get_rows_in_table('users') if c.idnumber]:
             self.users[user.idnumber] = bool(user.deleted)
 
@@ -116,7 +122,10 @@ class MoodleFirstRunTemplate(MoodleTemplate):
         course_idnumber = action.source.course
         if not course_idnumber in self.courses:
             return dropped_action(method=f"No course {course_idnumber} in moodle")
-        return self.php.create_group_for_course(course_idnumber, group_idnumber, group_name)
+        if group_idnumber in self.groups:
+            return dropped_action(method=f"Group {group_idnumber} already exists")
+        else:
+            return self.php.create_group_for_course(course_idnumber, group_idnumber, group_name)            
 
     def new_cohorts(self, action):
         cohort = action.source
