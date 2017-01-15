@@ -87,13 +87,11 @@ class AutosendParentsImporter(DefaultImporter):
                 'lastfirst': parent1_email + ', Parent',
                 'homeroom': set([student.homeroom])
             }
-            if parent2_email:
-                # Ensure that there is actually a second parent registered
-                yield {
-                    'idnumber': parent2,
-                    'email': parent2_email,
-                    'lastfirst': parent2_email + ', Parent',
-                }
+            yield {
+                'idnumber': parent2,
+                'email': parent2_email,
+                'lastfirst': parent2_email + ', Parent',
+            }
 
     def on_import_complete(self):
         """

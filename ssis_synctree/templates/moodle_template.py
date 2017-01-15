@@ -1,4 +1,3 @@
-#from ssis_synctree.trees import MoodleTree
 from synctree.importers.db_importer import PostgresDBImporter
 from ssis_synctree.moodle.MoodleInterface import MoodleInterface
 
@@ -77,12 +76,13 @@ class MoodleFirstRunTemplate(MoodleTemplate):
                 ret.append( self.php.add_user_to_cohort(user.idnumber, cohort) )
             return ret
 
+    
     def new_parents(self, action):
         pees = {'0': 'P', '1':'PP'}.get(action.idnumber[-1], None)
         deprecated_idnumber = f"{action.source._family_id}{pees}"
         if pees and deprecated_idnumber in self.users:
             if self.users[deprecated_idnumber]:
-                # It has been deleted, undelete it before migrating
+                # It has been deleted, undelete it before migrating                
                 self.moodledb.update_table('users', where={'idnumber':deprecated_idnumber}, deleted=0)
 
             if action.idnumber in self.users:

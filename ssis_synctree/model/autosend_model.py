@@ -66,7 +66,7 @@ class AutosendStudents(BaseStudents):
 
     def _parent2_email(self):
         l = self._guardian_email_list
-        return l[1] if len(l) > 1 else None
+        return l[1] if len(l) > 1 else 'noemaillisted' + self.idnumber + '@example.com'
 
     def _year_of_graduation(self):
         """
