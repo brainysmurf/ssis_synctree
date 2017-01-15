@@ -103,7 +103,7 @@ class AutosendParents(BaseParents):
         return self.lastfirst.split(',')[0].strip()
 
     def auth(self):
-        return 'manual'
+        return 'ldap_syncplus'
 
     def _cohorts(self):
         """ Ensures they are placed into here """
@@ -123,7 +123,7 @@ class AutosendStaff(BaseStaff):
         return self.idnumber
 
     def auth(self):
-        return 'ldap_sync'
+        return 'ldap_syncplus'
 
     def firstname(self): 
         return self.lastfirst.split(',')[1].strip()
