@@ -135,12 +135,20 @@ class AutosendStaff(BaseStaff):
         if self._section == '0':
             return ['supportstaffALL']
         else:
-            if self._section == '111':
-                return ['teachersALL', 'teachersELEM']
-            elif self._section == '112':
-                return ['teachersALL', 'teachersSEC']
+            if self._sections:
+                coh = ['teachersALL']
+                if '111' in self._sections:
+                    coh.append('teachersELEM')
+                if '112' in self._sections:
+                    coh.append('teachersSEC')
+                return coh
             else:
-                return ['teachersALL']
+                if self._section == '111':
+                    return ['teachersALL', 'teachersELEM']
+                elif self._section == '112':
+                    return ['teachersALL', 'teachersSEC']
+                else:
+                    return ['teachersALL']
 
 @property_interface(
     'links'

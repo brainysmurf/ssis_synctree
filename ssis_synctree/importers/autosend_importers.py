@@ -181,7 +181,12 @@ class AutosendCoursesImporter(TranslatedCSVImporter):
         if kwargs_in['idnumber'].startswith('X'):
             return None
         orig_shortcode = kwargs_in['idnumber']
-        converted_short = self.course_mappings.get(orig_shortcode)
+
+        # It woud be best to output some kind of error or reporting
+        # device to indicate if there is no mapping present... 
+        converted_short = self.course_mappings.get(orig_shortcode, orig_shortcode)
+        #
+
         kwargs_in['_shortcode'] = orig_shortcode
         kwargs_in['moodle_shortcode'] = converted_short
         kwargs_in['idnumber'] = converted_short
