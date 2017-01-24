@@ -124,7 +124,7 @@ class AutosendStaff(BaseStaff):
         return self._email_handle
 
     def auth(self):
-        return 'ldap_syncplus'
+        return 'ldap_syncplus' if self.idnumber != '48250' else 'manual'  # jac's account
 
     def firstname(self): 
         return self.lastfirst.split(',')[1].strip()
