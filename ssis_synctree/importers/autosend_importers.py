@@ -91,6 +91,7 @@ class AutosendParentsImporter(DefaultImporter):
                 'idnumber': parent2,
                 'email': parent2_email,
                 'lastfirst': parent2_email + ', Parent',
+                'homeroom': set([student.homeroom])
             }
 
     def on_import_complete(self):

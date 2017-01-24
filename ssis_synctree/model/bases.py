@@ -4,6 +4,15 @@ class BaseUsers(Base):
     """
 
     """
+    def _email_handle(self):
+        try:
+            return self.email.split('@')[0]
+        except IndexError:
+            return self.email
+
+    def _is_staff(self):
+        return '@ssis-suzhou.net' in self.email
+
     def _family_id(self):
         return self.idnumber[:4]
 

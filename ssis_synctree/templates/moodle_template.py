@@ -19,6 +19,7 @@ except ImportError:
 
 from synctree.utils import extend_template_exceptions
 
+
 class MoodleDB(PostgresDBImporter, MoodleInterface):
     _settings = ssis_synctree_settings['SSIS_DB']
 
@@ -30,8 +31,10 @@ class MoodleDB(PostgresDBImporter, MoodleInterface):
         """
         self.init()
 
+
 class MoodleTemplate(DefaultTemplate):
-    user_column_map = {'homeroom':'department'}  # User column mapping
+
+    user_column_map = {'homeroom': 'department'}  # User column mapping
     _exceptions = extend_template_exceptions('user_column_map php moodledb courses users')
 
     def __init__(self):
@@ -45,11 +48,12 @@ class MoodleTemplate(DefaultTemplate):
         self.groups = []
         self.users = {}
         for course in [c for c in self.moodledb.get_rows_in_table('courses') if c.idnumber]:
-            self.courses.append( course.idnumber )
+            self.courses.append(course.idnumber)
         for group in [c for c in self.moodledb.get_rows_in_table('groups') if c.idnumber]:
-            self.groups.append( group.idnumber )
+            self.groups.append(group.idnumber)
         for user in [c for c in self.moodledb.get_rows_in_table('users') if c.idnumber]:
             self.users[user.idnumber] = bool(user.deleted)
+
 
 class MoodleFirstRunTemplate(MoodleTemplate):
     """
@@ -64,31 +68,30 @@ class MoodleFirstRunTemplate(MoodleTemplate):
             ret = []
             if user.idnumber not in self.users:
                 # only actually call this if we are sure it's not already there
-                ret.append( self.php.create_account(user.username, user.email, user.firstname, user.lastname, user.idnumber) )
+                ret.append(self.php.create_account(user.username, user.email, user.firstname, user.lastname, user.idnumber))
             else:
-                if self.users[user.idnumber]: 
+                if self.users[user.idnumber]:
                     # It's been deleted, so just change it back
-                    ret.append( successful_result(method='new_users', info=f"Found an old, deleted student: {user.idnumber}") )
-                    ret.append( self.moodledb.update_table('users', where={'idnumber':user.idnumber}, deleted=0) )
+                    ret.append(successful_result(method='new_users', info=f"Found an old, deleted student: {user.idnumber}"))
+                    ret.append(self.moodledb.update_table('users', where={'idnumber':user.idnumber}, deleted=0))
                 else:
-                    ret.append( dropped_action(method=f"Already exists: {user.name} ({user.idnumber})") )
+                    ret.append(dropped_action(method=f"Already exists: {user.name} ({user.idnumber})"))
             for cohort in user._cohorts:
-                ret.append( self.php.add_user_to_cohort(user.idnumber, cohort) )
+                ret.append(self.php.add_user_to_cohort(user.idnumber, cohort))
             return ret
 
-    
     def new_parents(self, action):
-        pees = {'0': 'P', '1':'PP'}.get(action.idnumber[-1], None)
+        pees = {'0': 'P', '1': 'PP'}.get(action.idnumber[-1], None)
         deprecated_idnumber = f"{action.source._family_id}{pees}"
         if pees and deprecated_idnumber in self.users:
             if self.users[deprecated_idnumber]:
-                # It has been deleted, undelete it before migrating                
-                self.moodledb.update_table('users', where={'idnumber':deprecated_idnumber}, deleted=0)
+                # It has been deleted, undelete it before migrating
+                self.moodledb.update_table('users', where={'idnumber': deprecated_idnumber}, deleted=0)
 
             if action.idnumber in self.users:
                 # It's already there, don't need to do anything
                 return dropped_action(method=f'Parent already exists: {action.idnumber}')
-            return self.moodledb.update_table('users', where={'idnumber':deprecated_idnumber}, idnumber=action.idnumber)
+            return self.moodledb.update_table('users', where={'idnumber': deprecated_idnumber}, idnumber=action.idnumber)
 
         else:
             return self.new_users(action)
@@ -120,12 +123,12 @@ class MoodleFirstRunTemplate(MoodleTemplate):
         group_idnumber = action.source.idnumber
         group_name = action.source.name
         course_idnumber = action.source.course
-        if not course_idnumber in self.courses:
+        if course_idnumber not in self.courses:
             return dropped_action(method=f"No course {course_idnumber} in moodle")
         if group_idnumber in self.groups:
             return dropped_action(method=f"Group {group_idnumber} already exists")
         else:
-            return self.php.create_group_for_course(course_idnumber, group_idnumber, group_name)            
+            return self.php.create_group_for_course(course_idnumber, group_idnumber, group_name)
 
     def new_cohorts(self, action):
         cohort = action.source
@@ -135,7 +138,7 @@ class MoodleFirstRunTemplate(MoodleTemplate):
         ret = []
         parent_idnumber = action.source.idnumber
         for child_idnumber in action.source.links:
-            ret.append( self.php.associate_child_to_parent(parent_idnumber, child_idnumber))
+            ret.append(self.php.associate_child_to_parent(parent_idnumber, child_idnumber))
         return ret
 
     def add_cohorts_members_to_moodle(self, action):
@@ -148,6 +151,7 @@ class MoodleFirstRunTemplate(MoodleTemplate):
         user_idnumber = action.value
         return self.php.remove_user_from_cohort(user_idnumber, cohort_idnumber)
 
+
 class MoodleFullTemplate(MoodleFirstRunTemplate):
 
     def old_students(self, action):
@@ -159,58 +163,79 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
     def old_parents(self, action):
         return dropped_action(method=action.method)
 
-    def update_user_profile(self, action, column):  
+    def update_user_profile(self, action, column):
         who = action.dest
         to_ = getattr(action.source, column)
         kwargs = {}
         mapped_column = self.user_column_map.get(column) or column
         kwargs[mapped_column] = to_
-        return self.moodledb.update_table('users', where={'idnumber':who.idnumber}, **kwargs)
+        return self.moodledb.update_table('users', where={'idnumber': who.idnumber}, **kwargs)
 
     def update_staff_auth(self, action):
         return self.update_user_profile(action, 'auth')
+
     def update_students_auth(self, action):
         return self.update_user_profile(action, 'auth')
+
     def update_parents_auth(self, action):
         return self.update_user_profile(action, 'auth')
+
     def update_staff_firstname(self, action):
         return self.update_user_profile(action, 'firstname')
+
     def update_students_firstname(self, action):
         return self.update_user_profile(action, 'firstname')
+
     def update_parents_firstname(self, action):
         return self.update_user_profile(action, 'firstname')
+
     def update_staff_lastname(self, action):
         return self.update_user_profile(action, 'lastname')
+
     def update_students_lastname(self, action):
         return self.update_user_profile(action, 'lastname')
+
     def update_parents_lastname(self, action):
         return self.update_user_profile(action, 'lastname')
+
     def update_staff_email(self, action):
         return self.update_user_profile(action, 'email')
+
     def update_students_email(self, action):
         return self.update_user_profile(action, 'email')
+
     def update_parents_email(self, action):
         return self.update_user_profile(action, 'email')
+
     def update_staff_username(self, action):
         return self.update_user_profile(action, 'username')
+
     def update_students_username(self, action):
         return self.update_user_profile(action, 'username')
+
     def update_parents_username(self, action):
         return self.update_user_profile(action, 'username')
+
     def update_staff_homeroom(self, action):
         return self.update_user_profile(action, 'homeroom')
+
     def update_students_homeroom(self, action):
         return self.update_user_profile(action, 'homeroom')
+
     def update_parents_homeroom(self, action):
         return self.update_user_profile(action, 'homeroom')
+
     def update_staff_name(self, action):
         return self.update_user_profile(action, 'name')
+
     def update_students_name(self, action):
         return self.update_user_profile(action, 'name')
+
     def update_parents_name(self, action):
         return self.update_user_profile(action, 'name')
+
     # def update_parents_lastfirst(self, action):
-    #     """ This doesn't do anything """ 
+    #     """ This doesn't do anything """
     #     return
 
     def update_username(self, action):
@@ -219,10 +244,13 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
         if user:
             return unsuccessful_result(info=f'There is already a user with the username of {action.source.username}')
         return self.update_user_profile(action, 'username')
+
     def update_firstname(self, action):
         return self.update_user_profile(action, 'firstname')
+
     def update_lastname(self, action):
         return self.update_user_profile(action, 'lastname')
+
     def update_email(self, action):
         return self.update_user_profile(action, 'email')
 
@@ -235,15 +263,15 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
         enrollments = action.source
         ret = []
         for i, course in enumerate(enrollments.courses):
-            if not course in self.courses:
+            if course not in self.courses:
                 ret.append( dropped_action(method=f"No course {course} in moodle") )
                 continue
             group = enrollments.groups[i]
             role = enrollments.roles[i]
             if not group:
-                ret.append( return_unimplemented_result(info=f"Unknown group, not enrolling {user_idnumber} from {course}") )
+                ret.append(return_unimplemented_result(info=f"Unknown group, not enrolling {user_idnumber} from {course}"))
                 continue
-            ret.append( self.php.enrol_user_into_course(user_idnumber, course, group, group, role) )
+            ret.append(self.php.enrol_user_into_course(user_idnumber, course, group, group, role))
         return ret
 
     def old_enrollments(self, action):
@@ -258,9 +286,9 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
             group = enrollments.groups[i]
             role = enrollments.roles[i]
             if not group:
-                ret.append( return_unimplemented_result(info=f"Blank group, not de-enrolling {user_idnumber} from {course}") )
+                ret.append(return_unimplemented_result(info=f"Blank group, not de-enrolling {user_idnumber} from {course}"))
                 continue
-            ret.append( self.php.unenrol_user_from_course(user_idnumber, course) )
+            ret.append(self.php.unenrol_user_from_course(user_idnumber, course))
         return ret
 
     def add_enrollments_courses_to_moodle(self, action):
@@ -271,7 +299,7 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
         user_idnumber = action.source.idnumber
         enrollments = action.source
         course = action.value
-        if not course in self.courses:
+        if course not in self.courses:
             return dropped_action(method=f"No course {course} in moodle")
         index = enrollments.courses.index(course)
         group = enrollments.groups[index]
@@ -289,12 +317,12 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
     def add_enrollments_roles_to_moodle(self, action):
         return []
 
-
     # def remove_students_parents_from_moodle(self, action):
     #     """
     #     TODO
     #     """
     #     return
+
 
 class HuesReporter:
 
@@ -319,6 +347,7 @@ class HuesReporter:
         else:
             # No need to add is message is None, indication that don't need, for example EOF
             pass
+
 
 class MoodleTestTemplate(MoodleFullTemplate):
     _reporter_class = HuesReporter

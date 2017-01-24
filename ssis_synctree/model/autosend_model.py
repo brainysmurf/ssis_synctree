@@ -66,7 +66,7 @@ class AutosendStudents(BaseStudents):
 
     def _parent2_email(self):
         l = self._guardian_email_list
-        return l[1] if len(l) > 1 else 'noemaillisted' + self.idnumber + '@example.com'
+        return l[1] if len(l) > 1 else 'noemaillisted' + self._family_id + '@example.com'
 
     def _year_of_graduation(self):
         """
@@ -94,7 +94,7 @@ class AutosendParents(BaseParents):
     """
     def username(self):
         """ FIXME: makes sure this works should be the idnumber """
-        return self.idnumber
+        return self._email_handle if self._is_staff else self.idnumber
 
     def firstname(self):
         return self.lastfirst.split(',')[1].strip()
@@ -109,6 +109,7 @@ class AutosendParents(BaseParents):
         """ Ensures they are placed into here """
         return ['parentsALL']
 
+
 @property_interface(
     'lastfirst username email lastname firstname '  
     '_active _section _cohorts _dunno _sections',
@@ -120,7 +121,7 @@ class AutosendStaff(BaseStaff):
 
     def username(self):
         """ FIXME: email handle """
-        return self.idnumber
+        return self._email_handle
 
     def auth(self):
         return 'ldap_syncplus'

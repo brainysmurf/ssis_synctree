@@ -103,4 +103,4 @@ def psmdlsyncer_main(obj, synctree_context, read_from_store, write_to_store, tem
     # autosend = s.autosend
     # moodle = s.moodle
 
-    # from IPython import embed;embed()
+    from IPython import embed;embed()
