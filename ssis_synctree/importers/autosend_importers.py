@@ -101,6 +101,14 @@ class AutosendParentsImporter(DefaultImporter):
         for parent in self._branch.parents.get_objects():
             parent.homeroom = ','.join(sorted(parent.homeroom))
 
+            if parent.idnumber in self._branch.staff.idnumbers:
+                # Make changes to ensure that the accounts are equivalent
+                # This means having the parent account use the staff email addy
+                # FIXME: What happens if they are not the same?
+                staff = self._branch.staff.get(parent.idnumber)
+                if parent.email != staff.email:
+                    parent.email = staff.email
+
 class AutosendParentsChildLinkImporter(DefaultImporter):
     def resolve_duplicate(self, obj, **kwargs):
         if obj._kwargs != kwargs:

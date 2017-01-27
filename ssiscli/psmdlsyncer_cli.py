@@ -21,6 +21,15 @@ def psmdlsyncer_launch(ctx, template):
     ctx.invoke(psmdlsyncer_main, synctree_context='newgroups', template=template)
     ctx.invoke(psmdlsyncer_main, synctree_context='enrollments', template=template)
 
+@psmdlsyncer_entry.command('inspect')
+@click.pass_context
+def psmdlsyncer_inspect(ctx):
+    tree = ctx.invoke(psmdlsyncer_main, synctree_context='none', template=None)
+    autosend = tree.autosend
+    moodle = tree.moodle
+
+    from IPython import embed;embed()
+
 @psmdlsyncer_entry.command('main')
 @click.argument('synctree_context')
 @click.option('--read_from_store', is_flag=True, default=False, help="Reads in")
@@ -100,7 +109,4 @@ def psmdlsyncer_main(obj, synctree_context, read_from_store, write_to_store, tem
             
             a, m = s.autosend.students.get(prepare_student), s.moodle.students.get(prepare_student)
 
-    # autosend = s.autosend
-    # moodle = s.moodle
-
-    from IPython import embed;embed()
+    return s
