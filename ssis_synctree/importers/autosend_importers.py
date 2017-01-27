@@ -76,7 +76,7 @@ class AutosendParentsImporter(DefaultImporter):
 
     def reader(self):
         subbranch = self._branch.students
-        for student in subbranch.get_objects():
+        for student in subbranch:
             parent1 = student._family_id + '0'
             parent1_email = student._parent1_email
             parent2 = student._family_id + '1'
@@ -96,9 +96,12 @@ class AutosendParentsImporter(DefaultImporter):
 
     def on_import_complete(self):
         """
-        Modify the homeroom field to be a string
+        Rework the homeroom to be a string (from a list), and        
+        make changes to ensure that the accounts are equivalent.
+        This means having the parent account use the staff email addy
+        TODO: Is some operation needed when they are not the same?
         """
-        for parent in self._branch.parents.get_objects():
+        for parent in self._branch.parents:
             parent.homeroom = ','.join(sorted(parent.homeroom))
 
             if parent.idnumber in self._branch.staff.idnumbers:
@@ -107,6 +110,8 @@ class AutosendParentsImporter(DefaultImporter):
                 # FIXME: What happens if they are not the same?
                 staff = self._branch.staff.get(parent.idnumber)
                 if parent.email != staff.email:
+                    # Note that we have the model defined so that Parent.username
+                    # will return the email handle when the email is ssis-suzhou.net domain
                     parent.email = staff.email
 
 class AutosendParentsChildLinkImporter(DefaultImporter):
@@ -117,7 +122,7 @@ class AutosendParentsChildLinkImporter(DefaultImporter):
 
     def reader(self):
         branch = self._branch.students
-        for student in branch.get_objects():
+        for student in branch:
             for parent in student.parents:
                 yield {
                     'idnumber': student.idnumber,
@@ -137,7 +142,7 @@ class AutosendCohortsImporter(DefaultImporter):
     def reader(self):
         for b in ['students', 'parents', 'staff']:
             subbranch = getattr(self._branch, b)
-            for user in subbranch.get_objects():
+            for user in subbranch:
                 user_idnumber = user.idnumber
                 if b == 'students':
                     cohorts = user._cohorts
@@ -238,7 +243,7 @@ class AutosendGroupsImporter(DefaultImporter):
 
     def reader(self):
         subbranch = self._branch.schedule
-        for item in subbranch.get_objects():
+        for item in subbranch:
             id_ = item.idnumber
             student_idnumber = item.student_idnumber
             teacher_idnumber = item.staff_idnumber
@@ -271,7 +276,7 @@ class AutosendEnrollmentsImporter(DefaultImporter):
 
     def reader(self):
         branch = self._branch.schedule
-        for item in branch.get_objects():
+        for item in branch:
             id_ = item.idnumber
             student = item.student_idnumber
             teacher = item.staff_idnumber
