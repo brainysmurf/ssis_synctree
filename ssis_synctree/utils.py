@@ -1,3 +1,5 @@
+import sys
+from unittest.mock import Mock
 
 def time_now():
     """
@@ -5,8 +7,14 @@ def time_now():
     """
     return int(time.time())
 
+
 def convert_ps_shortcode(short):
     return short.replace('_', '')
+
+
+def is_attached_terminal():
+    return sys.stdout.isatty()
+
 
 class Namespace:
     """
@@ -53,12 +61,12 @@ class Namespace:
     def declared_kwargs(self):
         return {key: value for key, value in self.__dict__.items() if key.islower() and not key.startswith('_')}
 
-
     def __repr__(self):
         """
         VERY MEAGER WAY TO OUTPUT THIS DATA
         """
         return str({k: v for k, v in self.__dict__.items() if k!=k.upper() and not k.startswith('_')})
+
 
 class ExpandingDict(dict):
     def update_and_append(self, d):
@@ -72,6 +80,34 @@ class ExpandingDict(dict):
             del d[key]
         self.update(d)
 
+
+class DynamicMockIf:
+    """
+    Mock specific method calls with a dynamic function return
+    Used in this library to mock interface calls such as PHP and MoodleInterface
+    """
+    def __init__(self, activate, return_func, methods=None):
+        self._active = activate
+        self._methods = methods
+        self._return_func = return_func
+
+    def __call__(self, klass):
+        if not self._active:
+            return klass
+        instance = type('MockedMethods', (klass,), {})
+        methods = self._methods or [mthd for mthd in dir(instance) if not mthd.startswith('_')]
+        mock_kwargs = dict(side_effect=self._return_func)
+        for method in methods:
+            setattr(instance, method, Mock(**mock_kwargs))
+        return instance
+
+
 if __name__ == "__main__":
 
-    this = ExpandingDict()
+    @Mock(True)
+    class MockClass:
+        def callme(self, action):
+            print("Doesn't reach here")
+
+    mocked = MockCklass()
+    mocked.callme()

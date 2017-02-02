@@ -191,6 +191,8 @@ class moodlephp
             }
             if (substr($user->idnumber, 0, 4) != substr($idnumber, 0, 4)) {
                 return "-105 Could not create account for $username because there is a deleted account that already has that username. Needs to be fixed manually";
+            } else {
+                return "-110 Could not create new account because there is already an account with the same username " . $username;
             }
         }
 

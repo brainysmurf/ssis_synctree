@@ -3,6 +3,7 @@ from ssis_synctree.moodle.MoodleInterface import MoodleInterface
 import ssis_synctree_settings
 from collections import defaultdict
 
+
 class MoodleImporter(PostgresDBImporter, MoodleInterface):
     _settings = ssis_synctree_settings['SSIS_DB']
 
@@ -10,6 +11,7 @@ class MoodleImporter(PostgresDBImporter, MoodleInterface):
         """
         """
         return []
+
 
 class MoodleStudentsImporter(MoodleImporter):
 
@@ -23,9 +25,10 @@ class MoodleStudentsImporter(MoodleImporter):
         students = self.users_enrolled_in_this_cohort('studentsALL')
         for student in students:
             yield {
-                'idnumber':student.idnumber, 
-                'firstname':student.firstname, 
-                'lastname':student.lastname,
+                'idnumber': student.idnumber, 
+                'firstname': student.firstname, 
+                'lastname': student.lastname,
+                'email': student.email,
                 'auth': student.auth,
                 'username': student.username,
                 'homeroom': student.department,
@@ -44,23 +47,24 @@ class MoodleStudentsImporter(MoodleImporter):
                 'parents': [parent.idnumber],
             }
 
+
 class MoodleParentsImporter(MoodleImporter):
 
     def reader(self):
         # Build cohort information to be used below
 
         parents = self.users_enrolled_in_this_cohort('parentsALL')
-
         for parent in parents:
             yield {
-                'idnumber':parent.idnumber, 
-                'firstname':parent.firstname, 
-                'lastname':parent.lastname,
+                'idnumber': parent.idnumber, 
+                'firstname': parent.firstname, 
+                'lastname': parent.lastname,
                 'auth': parent.auth,
                 'username': parent.username,
                 'email': parent.email,
                 'homeroom': parent.department,
             }
+
 
 class MoodleStaffImporter(MoodleImporter):
     def reader(self):
@@ -76,7 +80,6 @@ class MoodleStaffImporter(MoodleImporter):
                     'auth': user.auth
                 }
 
-# Users is a hybrid
 
 class MoodleParentsChildLinkImporter(MoodleImporter):
     def resolve_duplicate(self, obj, **kwargs):
@@ -97,16 +100,6 @@ class MoodleParentsChildLinkImporter(MoodleImporter):
             }
 
 
-class StrandedUsersTable(MoodleImporter):
-    def reader(self):
-        for user in self.get_rows_in_table('users'):
-            if user.idnumber and not self._tree.users.get(user.idnumber):
-                yield {
-                    'idnumber': user.idnumber,
-                    'object': user
-                }
-        return []
-
 class MoodleCohortsImporter(MoodleImporter):
 
     def reader(self):
@@ -125,6 +118,7 @@ class MoodleCohortsImporter(MoodleImporter):
                     'idnumber': cohort_idnumber,
                     'members': [user_idnumber],
                 }
+
 
 class MoodleScheduleImporter(MoodleImporter):
     """
@@ -145,6 +139,7 @@ class MoodleScheduleImporter(MoodleImporter):
                 'role': role
             }
 
+
 class MoodleCoursesImporter(MoodleImporter):
     def reader(self):   
         for item in self.get_teaching_learning_courses():
@@ -155,6 +150,7 @@ class MoodleCoursesImporter(MoodleImporter):
                 '_dbid': item.database_id
             }
 
+
 class MoodleGroupsImporter(MoodleImporter):
 
     def kwargs_preprocessor(self, kwargs_in):
@@ -164,7 +160,7 @@ class MoodleGroupsImporter(MoodleImporter):
         return None
 
     def reader(self):
-        for group_id, group_idnumber, course_idnumber, user_idnumber in self.get_groups():
+        for group_id, group_idnumber, group_name, course_idnumber, user_idnumber in self.get_groups():
             if '-' in group_idnumber:
                 split = group_idnumber.split('-')
                 if len(split) == 4:
@@ -187,6 +183,7 @@ class MoodleGroupsImporter(MoodleImporter):
 
             yield {
                 'idnumber': group_idnumber,
+                'name': group_name,
                 'grade': grade,
                 'section': section,
                 '_short_code': '',
@@ -218,6 +215,7 @@ class MoodleGroupsImporter(MoodleImporter):
                 '_id': group.id,
                 'members': set()
             }
+
 
 class MoodleEnrollmentsImporter(MoodleImporter):
 

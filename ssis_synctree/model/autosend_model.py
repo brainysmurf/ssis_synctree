@@ -9,6 +9,7 @@ import ssis_synctree_settings
 
 STUDENT_PSIDUSERNAME_MAPPINGS = 'STUDENT_PSIDUSERNAME_MAPPINGS'
 
+
 @property_interface(
     'lastfirst name email firstname lastname auth username homeroom parents '
     '_dbid _dob _districtentrydate _department _passport _family_id _grade _guardianemails _guardian_email_list _parent1_email _parent2_email _year_of_graduation _this_year _cohorts',
@@ -84,6 +85,7 @@ class AutosendStudents(BaseStudents):
     #     # But reminds us that an underscore is needed here because this isn't information we are tracking
     #     return 2016
 
+
 @property_interface(
     'firstname lastname lastfirst email username auth homeroom '
     '_family_id',
@@ -151,6 +153,7 @@ class AutosendStaff(BaseStaff):
                 else:
                     return ['teachersALL']
 
+
 @property_interface(
     'links'
     '',
@@ -158,6 +161,7 @@ class AutosendStaff(BaseStaff):
 )
 class AutosendParentsChildLink(BaseParentsChildLink):
     pass
+
 
 @property_interface(
     'name moodle_shortcode '
@@ -169,6 +173,7 @@ class AutosendCourses(BaseCourses):
     """
     pass
     
+
 @property_interface(
     'course period section staff_idnumber student_idnumber'
     '',
@@ -180,6 +185,7 @@ class AutosendSchedule(BaseSchedule):
     """
     pass
 
+
 @property_interface(
     'course grade section members name '
     '_old_group',
@@ -190,6 +196,7 @@ class AutosendGroups(BaseGroup):
     """
     pass
 
+
 @property_interface(
     'members'
     '',
@@ -199,6 +206,7 @@ class AutosendCohorts(BaseCohort):
     """
     """
     pass
+
 
 @property_interface(
     'courses groups roles ',

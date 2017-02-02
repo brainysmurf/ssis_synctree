@@ -23,9 +23,12 @@ import ssis_synctree_settings
 
 from synctree.results import successful_result, unsuccessful_result
 
+from ssis_synctree.utils import DynamicMockIf
+
+
 class MoodleInter:
     """
-    Mixin that implements lower-level convenience methods that handles sessions, transactions, queries
+    Mixin that implements lower-level conveniene methods that handles sessions, transactions, queries
     Errors are not trapped, should be handled at higher level
     Does not implement self.db_session, that is left for the subclass
     """
@@ -63,7 +66,6 @@ class MoodleInter:
             instance = table_class()
             for key in kwargs.keys():
                 setattr(instance, key, kwargs[key])
-
             session.add(instance)
 
     def delete_table(self, table, **kwargs):
@@ -90,15 +92,15 @@ class MoodleInter:
             try:
                 instance = session.query(table_class).filter_by(**where).one()
             except NoResultFound:
-                return unsuccessful_result(method="MDB.update_date", info=f"Cannot update {table_class} with this query: {where} because NOT found")
+                return unsuccessful_result(method="db.update_date", info=f"Cannot update {table_class} with this query: {where} because NOT found")
             except MultipleResultsFound:
-                return unsuccessful_result(method="MDB.update_table", info=f"Cannot update {table_class} with this idnumber: {where['idnumber']} because multiple results found")
+                return unsuccessful_result(method="db.update_table", info=f"Cannot update {table_class} with this idnumber: {where['idnumber']} because multiple results found")
             except sqlalchemy.exc.IntegrityError:
-                return unsuccessful_result(method="MDB.update_table", info=f"Cannot update {table_class} with this idnumber: {where['idnumber']} because of an integrity error (it has to be unique but there is already someone in there)")
-            for key in kwargs.keys():
+                return unsuccessful_result(method="db.update_table", info=f"Cannot update {table_class} with this idnumber: {where['idnumber']} because of an integrity error (it has to be unique but there is already someone in there)")
+            for key in kwargs:
                 setattr(instance, key, kwargs[key])
             session.add(instance)
-        return successful_result(info="update {0.__tablename__} set {1} where {2}".format(table_class, list(kwargs.items()), list(where.items())))
+        return successful_result(method="db.update_table", info="update {0.__tablename__} set {1} where {2}".format(table_class, list(kwargs.items()), list(where.items())))
 
     def set_username_from_idnumber(self, idnumber, username):
         self.update_table('user', where={'idnumber':idnumber}, username=username)
@@ -500,23 +502,7 @@ class MoodleInterface(MoodleInter):
                 teachers = results[groupId]['teachers']
                 course = results[groupId]['course']
                 if teachers and course:
-                #     if groupId[-2] == '-':
-                #         groupId = groupId[:-2]
-                #     # first do a heuristic to see if we can't get the teacher username from the group name
-                #     derived_teacher = re.sub('[a-z]', '', groupId)
-                #     if derived_teacher:
-                #         teachers = [derived_teacher]
-                #     else:
-                #         self.logger.warning("Group with no teacher info: {}!".format(groupId))
-                #     from IPython import embed;embed();exit()
-                # if not course:
-                #     if groupId[-2] == '-':
-                #         groupId = groupId[:-2]
-                #     derived_course = re.sub('[a-z]', '', groupId)
-                #     if derived_course:
-                #         course = derived_course
-                #     else:
-                #         self.logger.warning("No course for group {}".format(groupId))
+
                     for teacher in teachers:
                         yield {
                             'shortcode':course, 
@@ -657,7 +643,9 @@ class MoodleInterface(MoodleInter):
                     filter(
                         and_(
                             Course.idnumber!='',
-                            CourseCategory.path.like('/{}/%'.format(self.TEACHING_LEARNING_CATEGORY_ID)),
+                            # CourseCategory.path.like('/{}/%'.format(self.TEACHING_LEARNING_CATEGORY_ID)),
+                            # Remove this limitation, since there really is no point to it anymore
+                            # FIXME: This query can be restructured
                         )).\
                 order_by(Course.id)
 
@@ -862,15 +850,15 @@ class MoodleInterface(MoodleInter):
                 filter(
                     and_(
                             User.deleted == 0, 
-                            User.idnumber!='',
-                            Cohort.idnumber!='',
+                            User.idnumber != '',
+                            Cohort.idnumber != '',
                         )
                 )
             yield from statement.all()
 
     def get_groups(self):
         with self.db_session() as session:
-            statement = session.query(Group.id, Group.idnumber, Course.idnumber, User.idnumber).\
+            statement = session.query(Group.id, Group.idnumber, Group.name, Course.idnumber, User.idnumber).\
                 select_from(GroupsMember).\
                     join(Group, GroupsMember.groupid == Group.id).\
                     join(Course, Course.id == Group.courseid).\

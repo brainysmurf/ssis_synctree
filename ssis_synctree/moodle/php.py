@@ -8,7 +8,10 @@ import ssis_synctree_settings
 from synctree.results import \
     successful_result, \
     unsuccessful_result, \
-    dropped_action
+    dropped_action, \
+    exception_during_call
+from ssis_synctree.utils import DynamicMockIf
+
 
 class PHP:
     """
@@ -16,6 +19,7 @@ class PHP:
     """
     # putting it here allows us to test pexpect
     _settings = ssis_synctree_settings['PHP']
+    _end_of_line = '\r\n'  # terminals use this DOS-like line ending
 
     def __init__(self):
         #TODO: Get this info from standard settings and config
@@ -32,6 +36,7 @@ class PHP:
         cmd = " ".join([self.path_to_php, self.path_to_cli]) + '/PHPCliMoodle.php'
         self.process = pexpect.spawn(cmd)
         self.process.delaybeforesend = 0  # speed things up a bit, eh?
+        self.process.setecho(False)
         self.process.timeout = 3600
         self.process.expect_exact('?: ') # not sure why this works the first time
 
@@ -52,8 +57,9 @@ class PHP:
 
         # We know that the phpclimoodle file returns a plus if it's all good
         # and a negative if not, handle accordingly
-        success_string = '\+.*'
-        error_string = '-\d+ .*'
+        # End with \r\n... I wonder why we are getting that??
+        success_string = '\+.*\r\n'
+        error_string = '-\d+ .*\r\n'
 
         # Look for a success string or an error string
         # Wrapped in a try statement, in case something else goes wrong
@@ -67,18 +73,26 @@ class PHP:
             raise Exception(f'-999999 exception was raised for command {sentline}: {e}')
         the_string = "<>"
         if which == 0:
-            the_string = self.process.after.decode('utf-8').strip('\n')
-            if the_string.startswith('++ Error'):
-                which = 1  # Mimick an error FIXME: Why have + ??
+            the_string = self.process.after.decode('utf-8').strip('\r\n')
+            if '++ Error' in the_string:
+                which = 2  # Mimick an error
         elif which == 1:
-            the_string = self.process.after.decode('utf-8').strip('\n')
+            the_string = self.process.after.decode('utf-8').strip('\r\n')
         else:
-            the_string = self.process.after.decode('utf-8').strip('\n') + ' -> pexpect returned non-understood result: {}'.format(which)
+            the_string = self.process.after.decode('utf-8').strip('\r\n') + ' -> pexpect returned non-understood result: {}'.format(which)
+
+
+        # cleanup the string
+        the_string.replace('\r\n', '').replace('?: ', '')  # Sometimes this "leaks" for unknown reason
 
         if which == 0:
-            return successful_result(method=the_string, info=sentline + ' -> ' + the_string)
+            return successful_result(method=sentline, info=the_string)
+        elif which == 1:
+            return unsuccessful_result(method=sentline, info=the_string)
+        elif which == 2:
+            return exception_during_call(method=sentline, info=the_string)
         else:
-            return unsuccessful_result(method=the_string, info=sentline)
+            return exception_during_call(method=sentline, info="Unknown pexpect error")
 
     def create_new_course(self, idnumber, fullname):
         """
@@ -218,7 +232,3 @@ class PHP:
         self.create_account( staff.username, staff.email, staff.first_name, staff.last_name, staff.num )
 
         self.add_user_to_cohort( staff.num, 'adminALL' )
-
-
-
-

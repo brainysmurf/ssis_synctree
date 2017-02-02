@@ -10,7 +10,6 @@ from ssis_synctree.converter import convert_short_long
 
 import ssis_synctree_settings
 
-verbose = False
 
 class AutosendImporter(CSVImporter):
     """
@@ -38,13 +37,14 @@ class AutosendImporter(CSVImporter):
             print("No candidates found for {}".format(starting_name))
             #exit()
         winner = files[-1]
-        verbose and print("-> Using {}".format(winner))
         ret = os.path.join(parent_dir, winner['file_'])
         return ret
+
 
 class AutosendStudentsImporter(AutosendImporter):
     pass
     
+
 class AutosendStaffImporter(AutosendImporter):
     def resolve_duplicate(self, obj, **kwargs):
         """
@@ -61,6 +61,7 @@ class AutosendStaffImporter(AutosendImporter):
         if not kwargs['_active'] or kwargs['email'] == "" or not kwargs['idnumber'].isdigit():
             return None
         return kwargs
+
 
 class AutosendParentsImporter(DefaultImporter):
     """
@@ -114,6 +115,7 @@ class AutosendParentsImporter(DefaultImporter):
                     # will return the email handle when the email is ssis-suzhou.net domain
                     parent.email = staff.email
 
+
 class AutosendParentsChildLinkImporter(DefaultImporter):
     def resolve_duplicate(self, obj, **kwargs):
         if obj._kwargs != kwargs:
@@ -132,6 +134,7 @@ class AutosendParentsChildLinkImporter(DefaultImporter):
                     'idnumber': parent,
                     'links': set([student.idnumber])
                 }
+
 
 class AutosendCohortsImporter(DefaultImporter):
 
@@ -165,8 +168,10 @@ class AutosendCohortsImporter(DefaultImporter):
 class ScheduleImporter(AutosendImporter):
     pass
 
+
 class CourseImporter(AutosendImporter):
     pass
+
 
 class AutosendCoursesImporter(TranslatedCSVImporter):
     klass = CourseImporter
@@ -207,6 +212,7 @@ class AutosendCoursesImporter(TranslatedCSVImporter):
 
     # def on_import_complete(self):        
 
+
 class AutosendScheduleImporter(TranslatedCSVImporter):
     """
     This class is for reference only, for other branches to read in information from
@@ -235,6 +241,7 @@ class AutosendScheduleImporter(TranslatedCSVImporter):
         kwargs_in['_old_group'] = "{}-{}-{}".format(staff.lastname.lower(), short.lower(), kwargs_in['section'].lower())
         kwargs_in['group'] = "{}-{}-{}-{}".format(staff.lastname.lower(), short.lower(), grade, kwargs_in['section'].lower())
         return kwargs_in
+
 
 class AutosendGroupsImporter(DefaultImporter):
     def resolve_duplicate(self, obj, **kwargs):
@@ -271,6 +278,7 @@ class AutosendGroupsImporter(DefaultImporter):
                 'section': section,
                 'members': set(members),
             }
+
 
 class AutosendEnrollmentsImporter(DefaultImporter):
 

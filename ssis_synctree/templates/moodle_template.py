@@ -1,7 +1,7 @@
 from synctree.importers.db_importer import PostgresDBImporter
 from ssis_synctree.moodle.MoodleInterface import MoodleInterface
 
-from synctree.templates import DefaultTemplate
+from synctree.templates import DefaultTemplate, LoggerTemplate, LoggerReporter
 
 from ssis_synctree.moodle.php import PHP
 
@@ -18,7 +18,8 @@ except ImportError:
     pass  # May not be needed, used for tests
 
 from synctree.utils import extend_template_exceptions
-
+from ssis_synctree.utils import is_attached_terminal
+from ssis_synctree.utils import DynamicMockIf
 
 class MoodleDB(PostgresDBImporter, MoodleInterface):
     _settings = ssis_synctree_settings['SSIS_DB']
@@ -32,18 +33,23 @@ class MoodleDB(PostgresDBImporter, MoodleInterface):
         self.init()
 
 
+def mocked_return(*args, **kwargs):
+    return successful_result(method="Mocked: " + str(args), info=str(kwargs))
+
+
 class MoodleTemplate(DefaultTemplate):
 
     user_column_map = {'homeroom': 'department'}  # User column mapping
     _exceptions = extend_template_exceptions('user_column_map php moodledb courses users')
+    _mock = False
 
     def __init__(self):
         """
         Sets up state so that we guarantee that things won't be re-created once we have them
         """
         super().__init__()
-        self.moodledb = MoodleDB()
-        self.php = PHP()
+        self.moodledb = DynamicMockIf(self._mock, mocked_return, methods=['update_table'])(MoodleDB)()
+        self.php = DynamicMockIf(self._mock, mocked_return, methods=['command'])(PHP)()
         self.courses = []
         self.groups = []
         self.users = {}
@@ -72,7 +78,7 @@ class MoodleFirstRunTemplate(MoodleTemplate):
             else:
                 if self.users[user.idnumber]:
                     # It's been deleted, so just change it back
-                    ret.append(successful_result(method='new_users', info=f"Found an old, deleted student: {user.idnumber}"))
+                    ret.append(successful_result(method='new_users', info=f"Found an old, deleted user: {user.idnumber}"))
                     ret.append(self.moodledb.update_table('users', where={'idnumber':user.idnumber}, deleted=0))
                 else:
                     ret.append(dropped_action(method=f"Already exists: {user.name} ({user.idnumber})"))
@@ -81,20 +87,27 @@ class MoodleFirstRunTemplate(MoodleTemplate):
             return ret
 
     def new_parents(self, action):
+        ret = []
         pees = {'0': 'P', '1': 'PP'}.get(action.idnumber[-1], None)
         deprecated_idnumber = f"{action.source._family_id}{pees}"
         if pees and deprecated_idnumber in self.users:
             if self.users[deprecated_idnumber]:
                 # It has been deleted, undelete it before migrating
-                self.moodledb.update_table('users', where={'idnumber': deprecated_idnumber}, deleted=0)
+                ret.append(self.moodledb.update_table('users', where={'idnumber': deprecated_idnumber}, deleted=0))
 
             if action.idnumber in self.users:
-                # It's already there, don't need to do anything
-                return dropped_action(method=f'Parent already exists: {action.idnumber}')
-            return self.moodledb.update_table('users', where={'idnumber': deprecated_idnumber}, idnumber=action.idnumber)
+                # We already have the normal ID in here, so compensate
+                if self.users[action.idnumber]:
+                    ret.append(self.moodledb.update_table('users', where={'idnumber': action.idnumber}, deleted=0))
+                # It's already there, but we didn't find it in parentsALL, so add it
+                ret.append(self.php.add_user_to_cohort(action.idnumber, 'parentsALL'))
+            else:
+                # Doesn't already exist, so migrate
+                ret.append(self.moodledb.update_table('users', where={'idnumber': deprecated_idnumber}, idnumber=action.idnumber))
 
         else:
-            return self.new_users(action)
+            ret.extend(self.new_users(action))
+        return ret
 
     def new_staff(self, action):
         # prepare = (
@@ -152,7 +165,50 @@ class MoodleFirstRunTemplate(MoodleTemplate):
         return self.php.remove_user_from_cohort(user_idnumber, cohort_idnumber)
 
 
+class FullReporter(LoggerReporter):
+
+    def __init__(self):
+        self._success = hues.huestr(' S ').white.bg_green.bold.colorized
+        self._fail = hues.huestr(' W ').black.bg_yellow.bold.colorized
+        self._exception = hues.huestr(' E ').white.bg_red.bold.colorized
+
+    def _reverse(self, x):
+        return hues.huestr(f" {x:20} ").black.bold.colorized
+
+    def will_start(self):
+        super().will_start()
+        self.unimplemented = set()
+
+    def finished(self):
+        print(sorted(self.unimplemented))
+
+    def success(self, action, result):
+        build_str = f"{self._success}{self._reverse(result.method)} {result.info}"
+        self.append_this(action, (build_str, action, result))
+        print(build_str)
+
+    def fail(self, action, result):
+        build_str = f"{self._fail}{self._reverse(result.method)} {result.info}"
+        self.append_this(action, (build_str, action, result))
+        print(build_str)
+
+    def exception(self, action, result):
+        build_str = f"{self._exception}{self._reverse(result.method)} {result.info}"
+        self.append_this(action, (build_str, action, result))
+        print(build_str)
+
+    def not_implemented(self, action, result):
+        super().not_implemented(action, result)
+        if result.method is not None:
+            self.unimplemented.add(result.method)
+        else:
+            # No need to add is message is None, indication that don't need, for example EOF
+            pass
+
+
 class MoodleFullTemplate(MoodleFirstRunTemplate):
+
+    _reporter_class = FullReporter
 
     def old_students(self, action):
         return dropped_action(method=action.method)
@@ -226,13 +282,13 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
         return self.update_user_profile(action, 'homeroom')
 
     def update_staff_name(self, action):
-        return self.update_user_profile(action, 'name')
+        return dropped_action("Users don't have 'name' in profile")
 
     def update_students_name(self, action):
-        return self.update_user_profile(action, 'name')
+        return dropped_action("Users don't have 'name' in profile")
 
     def update_parents_name(self, action):
-        return self.update_user_profile(action, 'name')
+        return dropped_action("Users don't have 'name' in profile")
 
     # def update_parents_lastfirst(self, action):
     #     """ This doesn't do anything """
@@ -317,12 +373,9 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
     def add_enrollments_roles_to_moodle(self, action):
         return []
 
-    # def remove_students_parents_from_moodle(self, action):
-    #     """
-    #     TODO
-    #     """
-    #     return
-
+    def add_groups_members_to_moodle(self, action):
+        # TODO: For this to work, we need to know the role, perhaps in source?
+        return []
 
 class HuesReporter:
 
@@ -333,7 +386,7 @@ class HuesReporter:
         print(sorted(self.unimplemented))
 
     def success(self, action, result):
-        hues.success(f"{action.method} ({result.info})")
+        hues.success(f"{result.method} ({result.info})")
 
     def fail(self, action, result):
         hues.error(f"{result.method} : {result.info}")
