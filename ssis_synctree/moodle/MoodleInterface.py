@@ -21,7 +21,7 @@ from ssis_synctree.moodle.MoodleDBSchema import *  # and, yes, import all the te
 from ssis_synctree.utils import Namespace, time_now
 import ssis_synctree_settings
 
-from synctree.results import successful_result, unsuccessful_result
+from synctree.results import successful_result, unsuccessful_result, exception_during_call
 
 from ssis_synctree.utils import DynamicMockIf
 
@@ -87,7 +87,10 @@ class MoodleInter:
         """
         Can only update one row...
         """
+        if len(where) != 1:
+            return exception_during_call(info=f"db.update_table passed 'where' dict with more than one key")
         table_class = self.table_string_to_class(table)
+        ret = []
         with self.db_session() as session:
             try:
                 instance = session.query(table_class).filter_by(**where).one()
@@ -99,8 +102,16 @@ class MoodleInter:
                 return unsuccessful_result(method="db.update_table", info=f"Cannot update {table_class} with this idnumber: {where['idnumber']} because of an integrity error (it has to be unique but there is already someone in there)")
             for key in kwargs:
                 setattr(instance, key, kwargs[key])
+                where_key = list(where.keys())[0]
+                ret.append(
+                    successful_result(method="db.update_table", 
+                        info="update {0.__tablename__} set {1} = {2} where {3} = {4}".format(
+                            table_class, key, kwargs[key], where_key, where[where_key]
+                        )
+                    )
+                )
             session.add(instance)
-        return successful_result(method="db.update_table", info="update {0.__tablename__} set {1} where {2}".format(table_class, list(kwargs.items()), list(where.items())))
+        return ret
 
     def set_username_from_idnumber(self, idnumber, username):
         self.update_table('user', where={'idnumber':idnumber}, username=username)
