@@ -51,6 +51,8 @@ class AutosendStaffImporter(AutosendImporter):
         Update the status ensuring we indicate secondary
         TODO: status should be a list
         """
+        if not hasattr(obj, '_sections'):
+            obj._sections = set()
         obj._sections.add(obj._section)
         obj._sections.add(kwargs.get('_section'))
         return None

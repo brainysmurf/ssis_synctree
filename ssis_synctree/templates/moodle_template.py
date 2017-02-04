@@ -173,7 +173,7 @@ class FullReporter(LoggerReporter):
         self._exception = hues.huestr(' E ').white.bg_red.bold.colorized
 
     def _reverse(self, x):
-        return hues.huestr(f" {x:20} ").black.bold.colorized
+        return hues.huestr(f" {x}: ").black.bold.colorized
 
     def will_start(self):
         super().will_start()
@@ -183,17 +183,17 @@ class FullReporter(LoggerReporter):
         print(sorted(self.unimplemented))
 
     def success(self, action, result):
-        build_str = f"{self._success}{self._reverse(result.method)} {result.info}"
+        build_str = f"{self._success}{self._reverse(action.method)}{result.method} -> {result.info}"
         self.append_this(action, (build_str, action, result))
         print(build_str)
 
     def fail(self, action, result):
-        build_str = f"{self._fail}{self._reverse(result.method)} {result.info}"
+        build_str = f"{self._fail}{self._reverse(action.method)}{result.method} -> {result.info}"
         self.append_this(action, (build_str, action, result))
         print(build_str)
 
     def exception(self, action, result):
-        build_str = f"{self._exception}{self._reverse(result.method)} {result.info}"
+        build_str = f"{self._exception}{self._reverse(action.method)}{result.method} -> {result.info}"
         self.append_this(action, (build_str, action, result))
         print(build_str)
 

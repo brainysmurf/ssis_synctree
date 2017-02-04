@@ -8,92 +8,58 @@ from synctree.interface import property_interface
 import re
 
 
-@property_interface(
-    'firstname lastname auth username homeroom parents lastfirst email '
-    '_deleted',
-    firstname='', lastname='', auth='nologin', username='', email='', homeroom='', parents=[], _deleted='0',
-)
 class MoodleStudents(BaseStudents):
+    __slots__ = ['firstname', 'lastname', 'auth', 'username', 'homeroom', 'parents', 'email', '_deleted']
+
+    @property
     def _grade(self):
         # FIXME: This has to be in settings.ini file
         return {'PKB': '-1'}.get(self.homeroom, re.sub('[^0-9]+$', '', self.homeroom))
 
+    @property
     def lastfirst(self):
         return f"{self.lastname}, {self.firstname}"
 
 
-@property_interface(
-    'firstname lastname lastfirst email username auth homeroom '
-    '_family_id',
-    firstname='', lastname='', auth='nologin', username='', email='', homeroom=''
-)
 class MoodleParents(BaseParents):
     """
     """
+    __slots__ = ['firstname', 'lastname', 'email', 'username', 'auth', 'homeroom', '_family_id']
+
+    @property
     def lastfirst(self):
         return f"{self.lastname}, {self.firstname}"
 
 
-@property_interface(
-    'firstname lastname username email auth lastfirst '
-    '',
-    firstname='', lastname='', username='', email='', auth=""
-)
 class MoodleStaff(BaseStaff):
+    __slots__ = ['firstname', 'lastname', 'username', 'email', 'auth']
+    @property
     def lastfirst(self):
         return f"{self.lastname}, {self.firstname}"
 
 
-@property_interface(
-    'links'
-    '',
-    links=[],
-)
 class MoodleParentsChildLink(BaseParentsChildLink):
-    pass
+    __slots__ = ['links']
 
 
-@property_interface(
-    'name moodle_shortcode '
-    '_dbid',
-    name='', moodle_shortcode='', _dbid=None
-)
 class MoodleCourses(BaseCourses):
-    pass
+    __slots__ = ['name', 'moodle_shortcode', '_dbid']
 
 
-@property_interface(
-    'user_idnumber course group role'
-    '',
-    user_idnumber='', course='', group='', role=''
-)
 class MoodleSchedule(BaseSchedule):
+    __slots__ = ['user_idnumber', 'course', 'group', 'role']
     """
     """
     pass
 
 
-@property_interface(
-    'grade name section course members '
-    '_short_code _id',
-    grade='', name='', section='', course='', members='', _id='', _short_code=''
-)
 class MoodleGroups(BaseGroup):
-    pass
+    __slots__ = ['grade', 'name', 'section', 'course', 'members', '_short_code', '_id']
 
 
-@property_interface(
-    'members'
-    '',
-    members='',
-)
 class MoodleCohorts(BaseCohort):
-    pass
+    __slots__ = ['members']
 
 
-@property_interface(
-    'courses groups roles ',
-    courses=[], groups=[], roles=[]
-)
 class MoodleEnrollments(BaseEnrollments):
-    pass
+    __slots__ = ['courses', 'groups', 'roles']
