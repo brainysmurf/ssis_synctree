@@ -208,7 +208,7 @@ class FullReporter(LoggerReporter):
 
 class MoodleFullTemplate(MoodleFirstRunTemplate):
 
-    _reporter_class = FullReporter
+    _reporter = FullReporter
 
     def old_students(self, action):
         return dropped_action(method=action.method)
@@ -377,6 +377,7 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
         # TODO: For this to work, we need to know the role, perhaps in source?
         return []
 
+
 class HuesReporter:
 
     def will_start(self):
@@ -403,7 +404,7 @@ class HuesReporter:
 
 
 class MoodleTestTemplate(MoodleFullTemplate):
-    _reporter_class = HuesReporter
+    _reporter = HuesReporter
 
 
 
