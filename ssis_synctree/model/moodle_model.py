@@ -3,7 +3,6 @@ from ssis_synctree.model.bases import \
     BaseParents, BaseParentsChildLink, \
     BaseCourses, BaseSchedule, \
     BaseGroup, BaseCohort, BaseEnrollments
-from synctree.interface import property_interface
 
 import re
 

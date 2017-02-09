@@ -4,7 +4,6 @@ from ssis_synctree.model.bases import \
     BaseCourses, BaseSchedule, \
     BaseGroup, BaseCohort, BaseEnrollments
 import re
-from synctree.interface import property_interface
 import ssis_synctree_settings
 
 STUDENT_PSIDUSERNAME_MAPPINGS = 'STUDENT_PSIDUSERNAME_MAPPINGS'

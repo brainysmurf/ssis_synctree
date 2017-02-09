@@ -79,7 +79,7 @@ class MoodleFirstRunTemplate(MoodleTemplate):
                 if self.users[user.idnumber]:
                     # It's been deleted, so just change it back
                     ret.append(successful_result(method='new_users', info=f"Found an old, deleted user: {user.idnumber}"))
-                    ret.append(self.moodledb.update_table('users', where={'idnumber':user.idnumber}, deleted=0))
+                    ret.extend(self.moodledb.update_table('users', where={'idnumber':user.idnumber}, deleted=0))
                 else:
                     ret.append(dropped_action(method=f"Already exists: {user.name} ({user.idnumber})"))
             for cohort in user._cohorts:
@@ -93,17 +93,17 @@ class MoodleFirstRunTemplate(MoodleTemplate):
         if pees and deprecated_idnumber in self.users:
             if self.users[deprecated_idnumber]:
                 # It has been deleted, undelete it before migrating
-                ret.append(self.moodledb.update_table('users', where={'idnumber': deprecated_idnumber}, deleted=0))
+                ret.extend(self.moodledb.update_table('users', where={'idnumber': deprecated_idnumber}, deleted=0))
 
             if action.idnumber in self.users:
                 # We already have the normal ID in here, so compensate
                 if self.users[action.idnumber]:
-                    ret.append(self.moodledb.update_table('users', where={'idnumber': action.idnumber}, deleted=0))
+                    ret.extend(self.moodledb.update_table('users', where={'idnumber': action.idnumber}, deleted=0))
                 # It's already there, but we didn't find it in parentsALL, so add it
                 ret.append(self.php.add_user_to_cohort(action.idnumber, 'parentsALL'))
             else:
                 # Doesn't already exist, so migrate
-                ret.append(self.moodledb.update_table('users', where={'idnumber': deprecated_idnumber}, idnumber=action.idnumber))
+                ret.extend(self.moodledb.update_table('users', where={'idnumber': deprecated_idnumber}, idnumber=action.idnumber))
 
         else:
             ret.extend(self.new_users(action))
