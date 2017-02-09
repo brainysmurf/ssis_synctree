@@ -95,11 +95,11 @@ class MoodleInter:
             try:
                 instance = session.query(table_class).filter_by(**where).one()
             except NoResultFound:
-                return unsuccessful_result(method="db.update_date", info=f"Cannot update {table_class} with this query: {where} because NOT found")
+                return [unsuccessful_result(method="db.update_date", info=f"Cannot update {table_class} with this query: {where} because NOT found")]
             except MultipleResultsFound:
-                return unsuccessful_result(method="db.update_table", info=f"Cannot update {table_class} with this idnumber: {where['idnumber']} because multiple results found")
+                return [unsuccessful_result(method="db.update_table", info=f"Cannot update {table_class} with this idnumber: {where['idnumber']} because multiple results found")]
             except sqlalchemy.exc.IntegrityError:
-                return unsuccessful_result(method="db.update_table", info=f"Cannot update {table_class} with this idnumber: {where['idnumber']} because of an integrity error (it has to be unique but there is already someone in there)")
+                return [unsuccessful_result(method="db.update_table", info=f"Cannot update {table_class} with this idnumber: {where['idnumber']} because of an integrity error (it has to be unique but there is already someone in there)")]
             for key in kwargs:
                 setattr(instance, key, kwargs[key])
                 where_key = list(where.keys())[0]
