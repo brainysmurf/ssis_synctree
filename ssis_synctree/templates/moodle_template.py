@@ -21,6 +21,7 @@ from synctree.utils import extend_template_exceptions
 from ssis_synctree.utils import is_attached_terminal
 from ssis_synctree.utils import DynamicMockIf
 
+
 class MoodleDB(PostgresDBImporter, MoodleInterface):
     _settings = ssis_synctree_settings['SSIS_DB']
 

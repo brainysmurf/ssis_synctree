@@ -1,6 +1,7 @@
 from synctree.settings import setup_settings
 import click
 
+
 class CLIObject:
     """
     Interface with datastoresync with the requisite info

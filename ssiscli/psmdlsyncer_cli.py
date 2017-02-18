@@ -1,4 +1,5 @@
 from synctree.tree import SyncTree
+from synctree.templates import BlockedTemplateWrapper
 from ssiscli.cli import CLIObject
 import click
 import hues
@@ -132,6 +133,7 @@ def psmdlsyncer_main(obj, synctree_context, read_from_store, write_to_store, tem
     import configparser
 
     context_key = f"CONTEXT_{synctree_context.upper()}"
+
     try:
         branches = ssis_synctree_settings.get(context_key, 'branches')
         subbranches = ssis_synctree_settings.get(context_key, 'subbranches')
@@ -155,7 +157,7 @@ def psmdlsyncer_main(obj, synctree_context, read_from_store, write_to_store, tem
     branches = [br.strip(' ') for br in branches.split(" ")]
     subbranches = [sbr.strip(' ') for sbr in subbranches.split(" ")]
     
-    hues.log(hues.huestr(f" Sync: {synctree_context} ").white.bg_magenta.bold.colorized)
+    hues.log(hues.huestr(f"psmdlsyncer: {synctree_context} ").white.bg_magenta.bold.colorized)
 
     if read_from_store:
         tree = SyncTree.from_file(path)
@@ -169,6 +171,7 @@ def psmdlsyncer_main(obj, synctree_context, read_from_store, write_to_store, tem
 
         # import:
         +tree
+        hues.log(hues.huestr(f"Import complete").magenta.bold.colorized)
 
         if write_to_store:
             tree.store(path)
@@ -179,7 +182,6 @@ def psmdlsyncer_main(obj, synctree_context, read_from_store, write_to_store, tem
         if template_only_these or template_exclude_these:
             if template == "Output":
                 raise TypeError('Cannot mock using template "Output"; need to use ssis_synctree template')
-            from synctree.templates import BlockedTemplateWrapper
             if template_only_these:
                 blocked = BlockedTemplateWrapper(template, mock=obj.mock, only_these=template_only_these)
             elif template_exclude_these:
@@ -194,7 +196,6 @@ def psmdlsyncer_main(obj, synctree_context, read_from_store, write_to_store, tem
                 template_class._mock = True
                 template = template_class()
             (tree.autosend > tree.moodle) | template
-
 
     if inspect:
         from IPython import embed;embed()
