@@ -15,6 +15,14 @@ class BaseUsers(Base):
             return self.email
 
     @property
+    def username(self):
+        return self._email_handle
+
+    @property
+    def auth(self):
+        return 'manual'
+
+    @property
     def _is_staff(self):
         return '@ssis-suzhou.net' in self.email
 

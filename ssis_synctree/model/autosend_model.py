@@ -13,21 +13,18 @@ class AutosendStudents(BaseStudents):
     """
     lastfirst
     """
-    __slots__ = ['homeroom', 'lastfirst', '_dbid', '_dob', '_districtentrydate', '_department', '_passport', '_grade', '_guardianemails']
+    __slots__ = ['homeroom', 'lastfirst', '_dbid', '_dob', '_handle', '_districtentrydate', '_department', '_passport', '_grade', '_guardianemails']
 
     @property
-    def auth(self):
-        boundary = int(ssis_synctree_settings.get('SSIS_AUTOSEND', 'auth_boundary'))
-        ldap_auth = ssis_synctree_settings.get('SSIS_AUTOSEND', 'auth_above_equal')
-        manual_auth = ssis_synctree_settings.get('SSIS_AUTOSEND', 'auth_less_than')
-        return ldap_auth if int(self._grade) >= boundary else manual_auth
-
-    @property
-    def email(self):
+    def _email_handle(self):
         """ FIXME: In future, this will not be synced """
         mapping = ssis_synctree_settings[STUDENT_PSIDUSERNAME_MAPPINGS].get(self.idnumber)
         handle = (self.name + self._year_of_graduation).lower().replace(' ', '') if not mapping else mapping
-        return handle + '@student.ssis-suzhou.net'
+        return handle
+
+    @property
+    def email(self):
+        return self._email_handle + '@student.ssis-suzhou.net'
 
     @property
     def firstname(self):
@@ -52,13 +49,13 @@ class AutosendStudents(BaseStudents):
         """
         Username is the PSID
         """
-        return self.idnumber
+        return self._email_handle
         # mapping = ssis_synctree_settings[STUDENT_PSIDUSERNAME_MAPPINGS].get(self.idnumber)
         # return (self.name + self._year_of_graduation).lower().replace(' ', '') if not mapping else mapping
 
     @property
     def parents(self):
-        return [self._family_id + '0', self._family_id + '1']
+        return [self._family_id + 'P']
 
     @property
     def _guardian_email_list(self):
@@ -99,21 +96,12 @@ class AutosendParents(BaseParents):
     __slots__ = ['lastfirst', 'email', 'homeroom']
 
     @property
-    def username(self):
-        """ FIXME: makes sure this works should be the idnumber """
-        return self._email_handle if self._is_staff else self.idnumber
-
-    @property
     def firstname(self):
         return self.lastfirst.split(',')[1].strip()
 
     @property
     def lastname(self):
         return self.lastfirst.split(',')[0].strip()
-
-    @property
-    def auth(self):
-        return 'ldap_syncplus'
 
     @property
     def _cohorts(self):
@@ -125,15 +113,6 @@ class AutosendStaff(BaseStaff):
     # For those that might have children associated to their teacher account
     #children = []
     __slots__ = ['_dbid', 'lastfirst', 'email', '_active', '_section', '_dunno', '_title', '_sections']
-
-    @property
-    def username(self):
-        """ FIXME: email handle """
-        return self._email_handle
-
-    @property
-    def auth(self):
-        return 'ldap_syncplus' if self.idnumber != '48250' else 'manual'  # jac's account
 
     @property
     def firstname(self): 
