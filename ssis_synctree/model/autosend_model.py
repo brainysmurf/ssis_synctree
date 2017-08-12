@@ -17,17 +17,19 @@ class AutosendStudents(BaseStudents):
 
     @property
     def auth(self):
-        boundary = int(ssis_synctree_settings.get('SSIS_AUTOSEND', 'auth_boundary'))
-        ldap_auth = ssis_synctree_settings.get('SSIS_AUTOSEND', 'auth_above_equal')
-        manual_auth = ssis_synctree_settings.get('SSIS_AUTOSEND', 'auth_less_than')
-        return ldap_auth if int(self._grade) >= boundary else manual_auth
+        """ Previous version had nologin in place, but not sure what to do """
+        # boundary = int(ssis_synctree_settings.get('SSIS_AUTOSEND', 'auth_boundary'))
+        # ldap_auth = ssis_synctree_settings.get('SSIS_AUTOSEND', 'auth_above_equal')
+        # manual_auth = ssis_synctree_settings.get('SSIS_AUTOSEND', 'auth_less_than')
+        # return ldap_auth if int(self._grade) >= boundary else manual_auth
+        return 'manual'
 
     @property
     def email(self):
-        """ FIXME: In future, this will not be synced """
-        mapping = ssis_synctree_settings[STUDENT_PSIDUSERNAME_MAPPINGS].get(self.idnumber)
-        handle = (self.name + self._year_of_graduation).lower().replace(' ', '') if not mapping else mapping
-        return handle + '@student.ssis-suzhou.net'
+        """ This has been updated to reflect Microsft 365 """
+        # mapping = ssis_synctree_settings[STUDENT_PSIDUSERNAME_MAPPINGS].get(self.idnumber)
+        # handle = (self.name + self._year_of_graduation).lower().replace(' ', '') if not mapping else mapping
+        return self.username + '@mail.ssis-suzhou.net'
 
     @property
     def firstname(self):
@@ -52,13 +54,13 @@ class AutosendStudents(BaseStudents):
         """
         Username is the PSID
         """
-        return self.idnumber
-        # mapping = ssis_synctree_settings[STUDENT_PSIDUSERNAME_MAPPINGS].get(self.idnumber)
-        # return (self.name + self._year_of_graduation).lower().replace(' ', '') if not mapping else mapping
+        #return self.idnumber
+        mapping = ssis_synctree_settings[STUDENT_PSIDUSERNAME_MAPPINGS].get(self.idnumber)
+        return (self.name + self._year_of_graduation).lower().replace(' ', '') if not mapping else mapping
 
     @property
     def parents(self):
-        return [self._family_id + '0', self._family_id + '1']
+        return [self._family_id + 'P']
 
     @property
     def _guardian_email_list(self):
@@ -101,7 +103,7 @@ class AutosendParents(BaseParents):
     @property
     def username(self):
         """ FIXME: makes sure this works should be the idnumber """
-        return self._email_handle if self._is_staff else self.idnumber
+        return self.email
 
     @property
     def firstname(self):
@@ -133,7 +135,7 @@ class AutosendStaff(BaseStaff):
 
     @property
     def auth(self):
-        return 'ldap_syncplus' if self.idnumber != '48250' else 'manual'  # jac's account
+        return 'ldap_syncplus'  #  if self.idnumber != '48250' else 'manual'  # jac's account
 
     @property
     def firstname(self): 
@@ -163,6 +165,8 @@ class AutosendStaff(BaseStaff):
                 else:
                     return ['teachersALL']
 
+    def post_init(self):
+        self.email = self.email.replace('@ssis-suzhou.net', '@mail.ssis-suzhou.net')
 
 class AutosendParentsChildLink(BaseParentsChildLink):
     __slots__ = ['links']

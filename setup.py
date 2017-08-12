@@ -6,7 +6,7 @@ setup(
     description = "A python framework that makes syncing between two applications straight-forward.",
     author = "Adam Morris",
     author_email = "amorris@mistermorris.com",
-    install_requires = ['treelib', 'click', 'sqlalchemy', 'psycopg2'],
+    install_requires = ['treelib', 'click', 'sqlalchemy', 'psycopg2', 'hues', 'ansi2html', 'pexpect'],
     lclassifiers = [
         "Programming Language :: Python :: 3",
         "Development Status :: 4 - Beta",

@@ -70,7 +70,6 @@ class MoodleStaffImporter(MoodleImporter):
     def reader(self):
         for cohort in ['teachersALL', 'supportstaffALL']:
             for user in self.users_enrolled_in_this_cohort(cohort):
-                #idnumber _dbid lastfirst email title status active dunno
                 yield {
                     'idnumber': user.idnumber,
                     'firstname': user.firstname,

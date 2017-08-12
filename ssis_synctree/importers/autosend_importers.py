@@ -58,9 +58,10 @@ class AutosendStaffImporter(AutosendImporter):
         return None
 
     def kwargs_preprocessor(self, kwargs):
-        kwargs['_active'] = kwargs['_active'] == '1'
+        kwargs['_active'] = kwargs['_active'] == '1'  # convert to bool
 
         if not kwargs['_active'] or kwargs['email'] == "" or not kwargs['idnumber'].isdigit():
+            # Filter out those that we don't need to care about
             return None
         return kwargs
 
@@ -80,22 +81,22 @@ class AutosendParentsImporter(DefaultImporter):
     def reader(self):
         subbranch = self._branch.students
         for student in subbranch:
-            parent1 = student._family_id + '0'
+            parent1 = student._family_id + 'P'
             parent1_email = student._parent1_email
-            parent2 = student._family_id + '1'
-            parent2_email = student._parent2_email
+            # parent2 = student._family_id + '1'
+            # parent2_email = student._parent2_email
             yield {
                 'idnumber': parent1,
                 'email': parent1_email,
                 'lastfirst': parent1_email + ', Parent',
                 'homeroom': set([student.homeroom])
             }
-            yield {
-                'idnumber': parent2,
-                'email': parent2_email,
-                'lastfirst': parent2_email + ', Parent',
-                'homeroom': set([student.homeroom])
-            }
+            # yield {
+            #     'idnumber': parent2,
+            #     'email': parent2_email,
+            #     'lastfirst': parent2_email + ', Parent',
+            #     'homeroom': set([student.homeroom])
+            # }
 
     def on_import_complete(self):
         """

@@ -111,12 +111,53 @@ class MoodleFirstRunTemplate(MoodleTemplate):
         return ret
 
     def new_staff(self, action):
-        # prepare = (
-        #     ( self.new_users, action ),
-        #     ( self.add_members_to_cohorts, action._replace(idnumber='parentsALL', value=action.idnumber) ),
-        # )
-        # return cascading_result(prepare)
-        return self.new_users(action)
+        """ Convoluted logical structure to reflect a migration """
+
+        existing_username = self.moodledb.get_user_from_username(action.source.username)
+        existing_idnumber = self.moodledb.get_user_from_idnumber(action.source.idnumber)
+
+        if existing_username and not existing_idnumber:
+            # There is only one account which we can just update directly
+            self.moodledb.set_user_idnumber_from_username(
+                action.source.username, action.source.idnumber
+            )
+            return dropped_action(method=f"Updated staff idnumber with id: {existing_username.id}")
+
+        if existing_username:
+            # We have to proceed carefully
+
+            if existing_username.idnumber == action.source.username:
+                # We have staff account with their email address in the idnumber field
+                if existing_idnumber:
+                    # There is an account with with the right idnumber
+                    if existing_idnumber.id == existing_username.id:
+                        # They are the same account, and this is correct, BUT WHY new_staff??
+                        return dropped_action(method=f"Why new: {action.source.idnumber}?")
+                    else:
+                        # Two different accounts that need to be merged
+                        return dropped_action(method=f"Merge these: {existing_idnumber.id} and {existing_username.id}")
+                else:
+                    # There is only one account which we can just update directly
+                    self.moodledb.set_user_idnumber_from_username(
+                        action.source.username, action.source.idnumber
+                    )
+                    return dropped_action(method=f"Updated staff idnumber with id: {existing_username.id}")
+            else:
+                if existing_username.idnumber == action.source.email:
+                    return dropped_action(method=f"This looks like the parent account: {action.source.idnumber}")
+                else:
+                    return dropped_action(method=f"No code path for {action.source.idnumber}")
+        else:
+            # Nothing with previous username
+            if existing_idnumber:
+                return dropped_action(f"Why new already one: {action.source.idnumber}!")
+            else:
+                # 
+                # Nothing there yet, proceed as normal
+                return self.new_users(action)
+                #
+        
+        return dropped_action(method=f"Huh. No code path for {action.source.idnumber}")
 
     def new_students(self, action):
         """

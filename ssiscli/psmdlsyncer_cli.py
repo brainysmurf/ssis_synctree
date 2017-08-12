@@ -27,9 +27,14 @@ def synctree_contexts():
 
 @psmdlsyncer_entry.command('run')
 @click.option('--template', type=click.STRING, default=None, help="Importable string or 'Output' or 'Testing' ")
+@click.option('--context', type=click.STRING, default=None, help="Context which is defined in settings.ini")
 @click.pass_context
-def psmdlsyncer_run(ctx, template):
-    for synctree_context in synctree_contexts():
+def psmdlsyncer_run(ctx, template, context):
+    if context is None:
+        contexts = synctree_contexts()
+    else:
+        contexts = [context]
+    for synctree_context in contexts:
         ctx.invoke(psmdlsyncer_main, synctree_context=synctree_context, template=template)
 
 
@@ -126,8 +131,7 @@ def psmdlsyncer_inspect(ctx):
 def psmdlsyncer_main(obj, synctree_context, read_from_store, write_to_store, template, inspect, clear):
     path = '/tmp/ssis_synctree.json'
 
-    # branches = ['autosend', 'moodle']
-    # subbranches = ['students', 'staff', 'parents', 'parents_child_link', 'cohorts', 'courses', 'schedule', 'groups']
+    input('hi')
 
     import ssis_synctree_settings
     import configparser
@@ -158,6 +162,10 @@ def psmdlsyncer_main(obj, synctree_context, read_from_store, write_to_store, tem
     subbranches = [sbr.strip(' ') for sbr in subbranches.split(" ")]
     
     hues.log(hues.huestr(f"psmdlsyncer: {synctree_context} ").white.bg_magenta.bold.colorized)
+
+    print(template_only_these)
+    print(template_exclude_these)
+    from IPython import embed;embed()
 
     if read_from_store:
         tree = SyncTree.from_file(path)

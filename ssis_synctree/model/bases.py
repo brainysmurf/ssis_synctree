@@ -16,6 +16,7 @@ class BaseUsers(Base):
 
     @property
     def _is_staff(self):
+        #raise NotImplemented("How to determine it is staff?")
         return '@ssis-suzhou.net' in self.email
 
     @property
@@ -33,10 +34,6 @@ class BaseStudents(BaseUsers):
 
 class BaseParents(BaseUsers):
     __slots__ = []
-
-    @property
-    def _family_id(self):
-        return self.idnumber[:4]
 
 
 class BaseStaff(BaseUsers):
