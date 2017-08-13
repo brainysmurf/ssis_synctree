@@ -119,19 +119,72 @@ def psmdlsyncer_inspect(ctx):
 
     from IPython import embed;embed()
 
+@psmdlsyncer_entry.command('manual_context')
+@click.argument('branches', type=click.STRING)
+@click.argument('subbranches', type=click.STRING)
+@click.option('--onlythese', type=click.STRING, default=None, help="")
+@click.option('--excludethese', type=click.STRING, default=None, help="")
+@click.option('--template', type=click.STRING, default='ssis_synctree.templates.moodle_template.MoodleFullTemplate', help="Importable string, default is MoodleFullTemplate")
+@click.option('--inspect', is_flag=True, default=False, help="Use IPython")
+@click.pass_obj
+def psmdlsyncer_manual_context(obj, branches, subbranches, onlythese, excludethese, template, inspect):
+    """
+    TODO: Unite this and main below
+    """
+    import ssis_synctree_settings
 
+    # convert data info
+    template_only_these = onlythese
+    template_exclude_these = excludethese
+    branches = [br.strip(' ') for br in branches.split(" ")]
+    subbranches = [sbr.strip(' ') for sbr in subbranches.split(" ")]
+    
+    tree = SyncTree(
+        branches,
+        subbranches,
+        "ssis_synctree.model.{branch}_model.{branch_title}{subbranch_title}",
+        'ssis_synctree.importers.{branch}_importers.{branch_title}{subbranch_title}Importer',
+    )
+
+    # import:
+    +tree
+    hues.log(hues.huestr(f"Import complete").magenta.bold.colorized)
+
+    if template is not None:
+        # This is the line that makes things go
+        # "take the differences between autosend and moodle, and change moodle according to template"
+        if template_only_these or template_exclude_these:
+            if template == "Output":
+                raise TypeError('Cannot mock using template "Output"; need to use ssis_synctree template')
+            if template_only_these:
+                blocked = BlockedTemplateWrapper(template, mock=obj.mock, only_these=template_only_these)
+            elif template_exclude_these:
+                blocked = BlockedTemplateWrapper(template, mock=obj.mock, exclude_these=template_exclude_these)
+            (tree.autosend > tree.moodle) | blocked._template
+        else:
+            if obj.mock:
+                # For mocking, we have to initilize the template in order to use the class variable 
+                # which will use DyanmicMockIf
+                from synctree.utils import class_string_to_class
+                template_class = class_string_to_class(template)
+                template_class._mock = True
+                template = template_class()
+            (tree.autosend > tree.moodle) | template
+
+    if inspect:
+        from IPython import embed;embed()
+
+    return tree
 @psmdlsyncer_entry.command('main')
 @click.argument('synctree_context')
 @click.option('--read_from_store', is_flag=True, default=False, help="Reads in")
 @click.option('--write_to_store', is_flag=True, default=False, help="Writes to default path")
-@click.option('--template', type=click.STRING, default=None, help="Importable string or 'Output' or 'Testing' ")
+@click.option('--template', type=click.STRING, default='ssis_synctree.templates.moodle_template.MoodleFullTemplate', help="Importable string, default is MoodleFullTemplate")
 @click.option('--inspect', is_flag=True, default=False, help="Use IPython")
 @click.option('--clear', is_flag=True, default=False, help="Clear at the end of use, doesn't return either")
 @click.pass_obj
 def psmdlsyncer_main(obj, synctree_context, read_from_store, write_to_store, template, inspect, clear):
     path = '/tmp/ssis_synctree.json'
-
-    input('hi')
 
     import ssis_synctree_settings
     import configparser
@@ -162,10 +215,6 @@ def psmdlsyncer_main(obj, synctree_context, read_from_store, write_to_store, tem
     subbranches = [sbr.strip(' ') for sbr in subbranches.split(" ")]
     
     hues.log(hues.huestr(f"psmdlsyncer: {synctree_context} ").white.bg_magenta.bold.colorized)
-
-    print(template_only_these)
-    print(template_exclude_these)
-    from IPython import embed;embed()
 
     if read_from_store:
         tree = SyncTree.from_file(path)

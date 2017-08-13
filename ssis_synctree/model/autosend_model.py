@@ -60,7 +60,7 @@ class AutosendStudents(BaseStudents):
 
     @property
     def parents(self):
-        return [self._family_id + 'P']
+        return [self._family_id + 'P']  # , self._family_id + 'PP']
 
     @property
     def _guardian_email_list(self):
@@ -86,7 +86,7 @@ class AutosendStudents(BaseStudents):
 
     @property
     def _this_year(self):
-        return 2017
+        return 2018
 
     # TODO: Fix this to be a calculation
     # def _this_year(self):
