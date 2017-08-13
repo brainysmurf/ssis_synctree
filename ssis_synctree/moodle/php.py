@@ -33,7 +33,7 @@ class PHP:
         os.chdir(self.path_to_cli)
 
         # And now, spawn it
-        cmd = " ".join([self.path_to_php, self.path_to_cli]) + '/PHPCliMoodle.php'
+        cmd = " ".join([self.path_to_php, self.path_to_cli]) + '/phpclimoodle.php'
         self.process = pexpect.spawn(cmd)
         self.process.delaybeforesend = 0  # speed things up a bit, eh?
         self.process.setecho(False)
