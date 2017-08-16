@@ -29,7 +29,7 @@ class AutosendStudents(BaseStudents):
         """ This has been updated to reflect Microsft 365 """
         # mapping = ssis_synctree_settings[STUDENT_PSIDUSERNAME_MAPPINGS].get(self.idnumber)
         # handle = (self.name + self._year_of_graduation).lower().replace(' ', '') if not mapping else mapping
-        return self.username + '@mail.ssis-suzhou.net'
+        return self.idnumber + '@mail.ssis-suzhou.net'
 
     @property
     def firstname(self):
