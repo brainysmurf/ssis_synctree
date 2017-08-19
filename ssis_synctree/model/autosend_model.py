@@ -56,7 +56,7 @@ class AutosendStudents(BaseStudents):
         """
         #return self.idnumber
         mapping = ssis_synctree_settings[STUDENT_PSIDUSERNAME_MAPPINGS].get(self.idnumber)
-        return (self.name + self._year_of_graduation).lower().replace(' ', '') if not mapping else mapping
+        return (self.name + self._year_of_graduation).lower().replace(' ', '').replace('-', '') if not mapping else mapping
 
     @property
     def parents(self):
@@ -103,7 +103,7 @@ class AutosendParents(BaseParents):
     @property
     def username(self):
         """ FIXME: makes sure this works should be the idnumber """
-        return self.email
+        return self.idnumber
 
     @property
     def firstname(self):
