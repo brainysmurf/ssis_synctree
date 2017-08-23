@@ -103,7 +103,7 @@ class AutosendParents(BaseParents):
     @property
     def username(self):
         """ FIXME: makes sure this works should be the idnumber """
-        return self.idnumber
+        return self._family_id + '0'
 
     @property
     def firstname(self):

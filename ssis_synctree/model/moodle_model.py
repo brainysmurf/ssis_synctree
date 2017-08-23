@@ -32,6 +32,7 @@ class MoodleParents(BaseParents):
 
 class MoodleStaff(BaseStaff):
     __slots__ = ['firstname', 'lastname', 'username', 'email', 'auth']
+
     @property
     def lastfirst(self):
         return f"{self.lastname}, {self.firstname}"

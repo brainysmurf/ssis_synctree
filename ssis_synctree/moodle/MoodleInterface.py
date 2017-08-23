@@ -156,6 +156,11 @@ class MoodleInter:
             ret = session.query(User).filter(User.username == username).one()
             ret.idnumber = idnumber
 
+    def change_user_username(self, old_username, new_username):
+        with self.db_session() as session:
+            ret = session.query(User).filter(User.username == old_username).one()
+            ret.username = new_username
+
     def get_column_from_row(self, table, column, **kwargs):
         table_class = self.table_string_to_class(table)
         with self.db_session() as session:
@@ -317,7 +322,7 @@ class MoodleInterface(MoodleInter):
                     join(CohortMember, CohortMember.userid == User.id).\
                     join(Cohort, Cohort.id == CohortMember.cohortid).\
                 filter(User.idnumber == idnumber)
-        yield from statement.all()
+        yield from [s[0] for s in statement.all()]
 
     def get_parent_student_links(self):
         with self.db_session() as session:

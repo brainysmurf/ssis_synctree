@@ -252,14 +252,20 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
 
     _reporter = FullReporter
 
+    def old_user(self, action):
+        res = []
+        for cohort in self.moodledb.get_cohorts_for_user(action.obj.idnumber):
+            res.append(self.php.remove_user_from_cohort(action.obj.idnumber, cohort))
+        return res
+
     def old_students(self, action):
-        return dropped_action(method=action.method)
+        return self.old_user(action)
 
     def old_staff(self, action):
-        return dropped_action(method=action.method)
+        return self.old_user(action)
 
     def old_parents(self, action):
-        return dropped_action(method=action.method)
+        return self.old_user(action)
 
     def update_user_profile(self, action, column):
         who = action.dest
