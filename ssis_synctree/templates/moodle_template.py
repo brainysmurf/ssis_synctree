@@ -422,8 +422,10 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
         return []
 
     def add_groups_members_to_moodle(self, action):
-        # TODO: For this to work, we need to know the role, perhaps in source?
-        return []
+        return self.php.add_user_to_group(action.value, action.idnumber)
+
+    def remove_groups_members_from_moodle(self, action):
+        return self.php.remove_user_from_group(action.value, action.idnumber)
 
 
 class HuesReporter:
