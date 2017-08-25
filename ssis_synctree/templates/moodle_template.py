@@ -395,6 +395,9 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
             ret.append(self.php.unenrol_user_from_course(user_idnumber, course))
         return ret
 
+    def old_groups(self, action):
+        return self.php.delete_group(action.idnumber, action.obj.course)
+
     def add_enrollments_courses_to_moodle(self, action):
         """
         This adds enrollments when detected a change
@@ -411,9 +414,10 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
         return self.php.enrol_user_into_course(user_idnumber, course, group, group, role)
 
     def remove_enrollments_courses_from_moodle(self, action):
-        user_idnumber = action.dest.idnumber
-        course = action.value
-        return self.php.unenrol_user_from_course(user_idnumber, course)
+        from IPython import embed;embed();exit()
+        # user_idnumber = action.dest.idnumber
+        # course = action.value
+        # return self.php.unenrol_user_from_course(user_idnumber, course)
 
     def add_enrollments_groups_to_moodle(self, action):
         return []
