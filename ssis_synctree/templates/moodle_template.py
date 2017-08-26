@@ -414,10 +414,30 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
         return self.php.enrol_user_into_course(user_idnumber, course, group, group, role)
 
     def remove_enrollments_courses_from_moodle(self, action):
-        from IPython import embed;embed();exit()
+        """
+        Since unenrollments from courses can be very disruptive, 
+        this handler unenrols from groups instead.
+
         # user_idnumber = action.dest.idnumber
         # course = action.value
         # return self.php.unenrol_user_from_course(user_idnumber, course)
+
+        """
+        if action.idnumber[-1] in ['0', '1']:
+            # If it's a staff member, don't do anything
+            return dropped_action(method="Not unenrolling staff {} from {}".format(action.idnumber, action.value))
+
+        # If it's a student or parent, just unenroll them from the group for the moment
+        if len(action.dest.courses) != len(action.dest.groups):
+            return dropped_action(method="Not removing {} from group in course {} b/c number of courses and groups unequal".format(action.idnumber, action.value))
+        group_index = action.dest.courses.index(action.value)
+        group_name = action.dest.groups[group_index]
+        if not group_name:
+            return dropped_action(method="Not removing {} from group in course {} b/c blank group found".format(action.idnumber, action.value))
+
+        return self.php.remove_user_from_group(action.idnumber, group_name)
+
+        # This is really removing TODO: Make this a setting
 
     def add_enrollments_groups_to_moodle(self, action):
         return []

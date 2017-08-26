@@ -60,7 +60,7 @@ class AutosendStudents(BaseStudents):
 
     @property
     def parents(self):
-        return [self._family_id + 'P']  # , self._family_id + 'PP']
+        return [self._family_id + 'P', self._family_id + 'PP']
 
     @property
     def _guardian_email_list(self):
@@ -148,7 +148,10 @@ class AutosendStaff(BaseStaff):
     @property
     def _cohorts(self):
         if self._section == '0':
-            return ['supportstaffALL']
+            ret = ['supportstaffALL']
+            if self._title == 'Substitute':
+                ret.append('teachersALL')
+            return ret
         else:
             if hasattr(self, '_sections'):
                 coh = ['teachersALL']
@@ -167,6 +170,7 @@ class AutosendStaff(BaseStaff):
 
     def post_init(self):
         self.email = self.email.replace('@ssis-suzhou.net', '@mail.ssis-suzhou.net')
+
 
 class AutosendParentsChildLink(BaseParentsChildLink):
     __slots__ = ['links']

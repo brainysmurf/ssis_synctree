@@ -116,6 +116,9 @@ class MoodleInter:
     def set_username_from_idnumber(self, idnumber, username):
         self.update_table('user', where={'idnumber':idnumber}, username=username)
 
+    def set_idnumber_from_idnumber(self, idnumber, new_idnumber):
+        self.update_table('user', where={'idnumber':idnumber}, idnumber=new_idnumber)
+
     def get_user_from_idnumber(self, idnumber):
         with self.db_session() as session:
             try:
@@ -213,6 +216,7 @@ class MoodleInter:
                 self.logger.warning("Multiple fields for {0.username} and {1}; using first() ".format(user, field_name))
                 ret = statement.first()
         return ret
+
 
 class MoodleInterface(MoodleInter):
     """

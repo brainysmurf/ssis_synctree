@@ -175,6 +175,8 @@ def psmdlsyncer_manual_context(obj, branches, subbranches, onlythese, excludethe
         from IPython import embed;embed()
 
     return tree
+
+
 @psmdlsyncer_entry.command('main')
 @click.argument('synctree_context')
 @click.option('--read_from_store', is_flag=True, default=False, help="Reads in")
