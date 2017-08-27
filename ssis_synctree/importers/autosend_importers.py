@@ -83,20 +83,20 @@ class AutosendParentsImporter(DefaultImporter):
         for student in subbranch:
             parent1 = student._family_id + 'P'
             parent1_email = student._parent1_email
-            # parent2 = student._family_id + '1'
-            # parent2_email = student._parent2_email
+            parent2 = student._family_id + '1'
+            parent2_email = student._parent2_email
             yield {
                 'idnumber': parent1,
                 'email': parent1_email,
                 'lastfirst': parent1_email + ', Parent',
                 'homeroom': set([student.homeroom])
             }
-            # yield {
-            #     'idnumber': parent2,
-            #     'email': parent2_email,
-            #     'lastfirst': parent2_email + ', Parent',
-            #     'homeroom': set([student.homeroom])
-            # }
+            yield {
+                'idnumber': parent2,
+                'email': parent2_email,
+                'lastfirst': parent2_email + ', Parent',
+                'homeroom': set([student.homeroom])
+            }
 
     def on_import_complete(self):
         """
