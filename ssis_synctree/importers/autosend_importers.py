@@ -83,7 +83,7 @@ class AutosendParentsImporter(DefaultImporter):
         for student in subbranch:
             parent1 = student._family_id + 'P'
             parent1_email = student._parent1_email
-            parent2 = student._family_id + '1'
+            parent2 = student._family_id + 'PP'
             parent2_email = student._parent2_email
             yield {
                 'idnumber': parent1,
@@ -156,6 +156,10 @@ class AutosendCohortsImporter(DefaultImporter):
                     cohorts = set()
                     parent = self._branch.parents.get(user_idnumber)
                     parentlink = self._branch.parents_child_link.get(parent.idnumber)
+                    if not parentlink:
+                        print("Parent {} in parents branch (user_idnumber: {})?".format(parent, user_idnumber))
+                        continue
+
                     for c in parentlink.links:
                         child = self._branch.students.get(c)
                         cohorts.update({c.replace('students', 'parents') for c in child._cohorts})
