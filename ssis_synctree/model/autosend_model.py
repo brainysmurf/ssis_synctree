@@ -103,7 +103,7 @@ class AutosendParents(BaseParents):
     @property
     def username(self):
         """ FIXME: makes sure this works should be the idnumber """
-        return self._family_id + '0'
+        return self._family_id + {0: 'P', 1: 'PP'}.get(self._num_ps)
 
     @property
     def firstname(self):
@@ -121,6 +121,9 @@ class AutosendParents(BaseParents):
     def _cohorts(self):
         """ Ensures they are placed into here """
         return ['parentsALL']
+
+    def post_init(self):
+        self._num_ps = len([0 for i in self.idnumber if i == 'P'])
 
 
 class AutosendStaff(BaseStaff):
