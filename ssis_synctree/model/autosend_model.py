@@ -23,7 +23,7 @@ class AutosendStudents(BaseStudents):
         # manual_auth = ssis_synctree_settings.get('SSIS_AUTOSEND', 'auth_less_than')
         # return ldap_auth if int(self._grade) >= boundary else manual_auth
         if self._grade in ['6']:
-            return 'ldapsync_plus'
+            return 'ldap_syncplus'
         return 'manual'
 
     @property
