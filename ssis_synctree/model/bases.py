@@ -27,9 +27,17 @@ class BaseUsers(Base):
     def name(self):
         return self.firstname + ' ' + self.lastname
 
+    @property
+    def _description(self):
+        return f"{self.name} ({self.idnumber}): {self.username} {self.auth.upper()}"
+
 
 class BaseStudents(BaseUsers):
     __slots__ = []
+
+    @property
+    def _description(self):
+        return f"{self.name} ({self.idnumber}) Grade {self._grade}: {self.username} {self.auth.upper()}"
 
 
 class BaseParents(BaseUsers):
@@ -43,10 +51,17 @@ class BaseStaff(BaseUsers):
 class BaseParentsChildLink(Base):
     __slots__ = []
 
+    @property
+    def _description(self):
+        return f"PARENTS: {', '.join(sorted(self.links))}"
+
 
 class BaseCourses(Base):
     __slots__ = []
 
+    @property
+    def _description(self):
+        return f"{self.idnumber}: {self.name}"
 
 class BaseSchedule(Base):
     """
@@ -54,6 +69,10 @@ class BaseSchedule(Base):
     """
     __slots__ = []
 
+    @property
+    def _description(self):
+        """ Don't output """
+        return None
 
 class BaseGroup(Base):
     __slots__ = []
@@ -65,3 +84,13 @@ class BaseCohort(Base):
 
 class BaseEnrollments(Base):
     __slots__ = []
+
+    @property
+    def _description(self):
+        assert len(self.courses) == len(self.groups)
+        num = len(self.courses)
+        arranged = [self.courses.index(c) for c in sorted(self.courses)]
+        enrollment_string = '\n\t'.join([self.courses[a] + ' -> ' + self.groups[a] for a in arranged])
+        return f"{num} ENROLLMENTS:\n\t{enrollment_string}"
+
+

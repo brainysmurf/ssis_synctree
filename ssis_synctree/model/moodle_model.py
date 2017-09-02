@@ -45,6 +45,10 @@ class MoodleParentsChildLink(BaseParentsChildLink):
 class MoodleCourses(BaseCourses):
     __slots__ = ['name', 'moodle_shortcode', '_dbid']
 
+    @property
+    def _dnet_link(self):
+        return 'https://dragonnet.ssis-suzhou.net/course/view.php?id={}'.format(self._dbid)
+
 
 class MoodleSchedule(BaseSchedule):
     __slots__ = ['user_idnumber', 'course', 'group', 'role']

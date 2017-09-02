@@ -22,7 +22,7 @@ class AutosendStudents(BaseStudents):
         # ldap_auth = ssis_synctree_settings.get('SSIS_AUTOSEND', 'auth_above_equal')
         # manual_auth = ssis_synctree_settings.get('SSIS_AUTOSEND', 'auth_less_than')
         # return ldap_auth if int(self._grade) >= boundary else manual_auth
-        if self._grade in ['6']:
+        if self._grade in ['6', '7', '8', '9', '10', '11', '12']:
             return 'ldap_syncplus'
         return 'manual'
 
@@ -57,7 +57,7 @@ class AutosendStudents(BaseStudents):
         Username is the PSID
         """
         #return self.idnumber
-        if self._grade in ['6']:
+        if self._grade in ['6', '7', '8', '9', '10', '11', '12']:
             return self.idnumber
         mapping = ssis_synctree_settings[STUDENT_PSIDUSERNAME_MAPPINGS].get(self.idnumber)
         return (self.name + self._year_of_graduation).lower().replace(' ', '').replace('-', '') if not mapping else mapping
@@ -185,6 +185,9 @@ class AutosendCourses(BaseCourses):
     """
     __slots__ = ['name', 'moodle_shortcode', '_shortcode', '_names', '_shortcodes']
 
+    @property
+    def _description(self):
+        return f"{self.idnumber}: {self.name} {self.moodle_shortcode} <== ({len(self._shortcodes)}) {', '.join(sorted(self._shortcodes))}"
 
 class AutosendSchedule(BaseSchedule):
     """

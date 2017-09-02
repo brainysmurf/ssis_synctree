@@ -259,13 +259,23 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
         return res
 
     def old_students(self, action):
-        return self.old_user(action)
+        if not hasattr(action.obj, 'homeroom') or action.obj.homeroom == 'left':
+            # already processed, no need to continue
+            return dropped_action(method="Already processed old users")
+        res = self.moodledb.update_table('users', where={'idnumber': action.idnumber}, department='left')
+        res.extend(self.old_user(action))
+        return res
 
     def old_staff(self, action):
         return self.old_user(action)
 
     def old_parents(self, action):
-        return self.old_user(action)
+        if not hasattr(action.obj, 'homeroom') or action.dest.homeroom == 'left':
+            # already processed, no need to continue
+            return dropped_action(method="Already processed old users")
+        res = self.moodledb.update_table('users', where={'idnumber': action.idnumber}, department='left')
+        res.extend(self.old_user(action))
+        return res
 
     def update_user_profile(self, action, column):
         who = action.dest

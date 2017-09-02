@@ -114,8 +114,49 @@ def psmdlsyncer_launch(ctx):
 @click.pass_context
 def psmdlsyncer_inspect(ctx):
     tree = ctx.invoke(psmdlsyncer_main, synctree_context='none', template=None)
-    autosend = tree.autosend
-    moodle = tree.moodle
+    p = tree.autosend
+    m = tree.moodle
+
+    def firstname(firstname):
+        return lookup(f'firstname:{firstname}')
+    def lastname(lastname):
+        return lookup(f'lastname:{lastname}')
+    def grade(grade):
+        return lookup(f'_grade:{grade}')
+    def homeroom(homeroom):
+        return lookup(f'homeroom:{homeroom}')
+
+    def lookup(bywhat, subbranch=None):
+        ret = []
+        if subbranch is None:
+            subbranch = p.students
+        objects = subbranch.find_all(bywhat)
+        if objects is None:
+            print("Not any of those objects")
+            return
+        if len(objects) == 1:
+            tree(objects[0].idnumber)
+        else:
+            for student in objects:
+                ret.append(student)
+                print(student._description)
+        return ret
+
+    def course(what, subbranch=None):
+        ret = []
+        courses = lookup(f'idnumber:{what}', subbranch=subbranch or p.courses)
+        if courses is None:
+            print("No courses found")
+            return
+        if len(courses):
+            print(courses[0]._description)
+        else:
+            for course in courses:
+                ret.append(course)
+                print(course._description)
+        return ret
+
+    compare = lambda idnumber: tree(idnumber)
 
     from IPython import embed;embed()
 

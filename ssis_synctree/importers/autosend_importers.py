@@ -4,7 +4,6 @@ from synctree.importers.default_importer import DefaultImporter
 from synctree.importers.csv_importer import CSVImporter, TranslatedCSVImporter
 from synctree.importers.db_importer import PostgresDBImporter
 from synctree.importers.default_importer import DefaultImporter
-from contextlib import contextmanager
 
 from ssis_synctree.converter import convert_short_long
 
@@ -190,6 +189,7 @@ class AutosendCoursesImporter(TranslatedCSVImporter):
         # Read in course mapping info and use as a dict below
         # Even though it is stored in lowercase, uppercase keys return identical results
         self.course_mappings = ssis_synctree_settings['COURSE_MAPPINGS']
+        self._branch.courses.cache = {}
 
     def resolve_duplicate(self, obj, **kwargs):
         """
@@ -209,6 +209,8 @@ class AutosendCoursesImporter(TranslatedCSVImporter):
         # It woud be best to output some kind of error or reporting
         # device to indicate if there is no mapping present... 
         converted_short = self.course_mappings.get(orig_shortcode, orig_shortcode)
+        if converted_short != orig_shortcode and not orig_shortcode in self._branch.courses.cache:
+            self._branch.courses.cache[orig_shortcode] = converted_short
         #
 
         kwargs_in['_shortcode'] = orig_shortcode
@@ -223,6 +225,7 @@ class AutosendCoursesImporter(TranslatedCSVImporter):
 class AutosendScheduleImporter(TranslatedCSVImporter):
     """
     This class is for reference only, for other branches to read in information from
+    Adds a cache to itself in order to track the changes made
     """
 
     klass = ScheduleImporter
@@ -236,7 +239,14 @@ class AutosendScheduleImporter(TranslatedCSVImporter):
         if student is None or kwargs_in.get('course').startswith('X'):
             # TODO: Do I need to filter out if no student?
             return None
-        short, _ = convert_short_long(kwargs_in['course'], "")
+        overridden = self._branch.courses.cache.get(kwargs_in['course'])
+        if overridden is None:
+            # use the default
+            short, _ = convert_short_long(kwargs_in['course'], "")
+        else:
+            # we already have done this
+            short = overridden
+
         kwargs_in['course'] = short
 
         staff = self._branch.staff.get(kwargs_in['staff_idnumber'])
