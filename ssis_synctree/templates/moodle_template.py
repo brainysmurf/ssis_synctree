@@ -41,7 +41,7 @@ def mocked_return(*args, **kwargs):
 class MoodleTemplate(DefaultTemplate):
 
     user_column_map = {'homeroom': 'department'}  # User column mapping
-    _exceptions = extend_template_exceptions('user_column_map php moodledb courses users')
+    _exceptions = extend_template_exceptions('user_column_map php moodledb courses users groups')
     _mock = False
 
     def __init__(self):
@@ -179,15 +179,15 @@ class MoodleFirstRunTemplate(MoodleTemplate):
         group_name = action.source.name
         course_idnumber = action.source.course
         if course_idnumber not in self.courses:
-            return dropped_action(method=f"No course {course_idnumber} in moodle")
+            return [dropped_action(method=f"No course {course_idnumber} in moodle")]
         if group_idnumber in self.groups:
-            return dropped_action(method=f"Group {group_idnumber} already exists")
+            return [dropped_action(method=f"Group {group_idnumber} already exists")]
         else:
-            return self.php.create_group_for_course(course_idnumber, group_idnumber, group_name)
+            return [self.php.create_group_for_course(course_idnumber, group_idnumber, group_name)]
 
     def new_cohorts(self, action):
         cohort = action.source
-        return self.php.new_cohort(cohort.idnumber, cohort.idnumber)
+        return [self.php.new_cohort(cohort.idnumber, cohort.idnumber)]
 
     def new_parents_child_link(self, action):
         ret = []
