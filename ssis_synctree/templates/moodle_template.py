@@ -368,6 +368,24 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
     def update_email(self, action):
         return self.update_user_profile(action, 'email')
 
+    def add_mrbs_editor(self, user_idnumber):
+        user = self.wrap_no_result(self.get_user_from_idnumber, user_idnumber)
+        if not user:
+            # no such user, don't do it!
+            return
+
+        now = time_now()
+        self.insert_table(
+            'role_assignments',
+            contextid=self.SYSTEM_CONTEXT,
+            roleid=self.MRBS_EDITOR_ROLE,
+            userid=user.id,
+            modifierid=2, # TODO: Admin ID, right?
+            component='psmdlsyncer',  # Might as well use it for something?
+            itemid=0,
+            sortorder=0,
+            timemodified=now)
+
     def new_enrollments(self, action):
         """
         This is received when a new user has enrollments not previously enrolled in anything
@@ -450,6 +468,13 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
         #     return dropped_action(method="Not removing {} from group in course {} b/c blank group found".format(action.idnumber, action.value))
 
         # return self.php.remove_user_from_group(action.idnumber, group_name)
+
+    def update_staff_mrbs_editor(self, action):
+        if action.value is True:
+            return [self.moodledb.add_mrbs_editor(action.idnumber)]
+        else:
+            return [dropped_action(method="Currently does not remove mrbs_editor")]
+
 
     def add_enrollments_groups_to_moodle(self, action):
         return []

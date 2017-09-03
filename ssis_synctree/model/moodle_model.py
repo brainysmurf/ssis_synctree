@@ -31,7 +31,7 @@ class MoodleParents(BaseParents):
 
 
 class MoodleStaff(BaseStaff):
-    __slots__ = ['firstname', 'lastname', 'username', 'email', 'auth']
+    __slots__ = ['firstname', 'lastname', 'username', 'email', 'auth', 'mrbs_editor']
 
     @property
     def lastfirst(self):

@@ -27,6 +27,17 @@ class AutosendStudents(BaseStudents):
         return 'manual'
 
     @property
+    def username(self):
+        """
+        Username is the PSID
+        """
+        #return self.idnumber
+        if self._grade in ['6', '7', '8', '9', '10', '11', '12']:
+            return self.idnumber
+        mapping = ssis_synctree_settings[STUDENT_PSIDUSERNAME_MAPPINGS].get(self.idnumber)
+        return (self.name + self._year_of_graduation).lower().replace(' ', '').replace('-', '') if not mapping else mapping
+
+    @property
     def email(self):
         """ This has been updated to reflect Microsft 365 """
         # mapping = ssis_synctree_settings[STUDENT_PSIDUSERNAME_MAPPINGS].get(self.idnumber)
@@ -50,17 +61,6 @@ class AutosendStudents(BaseStudents):
         elif int(self._grade) in range(10,13):
             ret.add('studentsHS')
         return ret
-
-    @property
-    def username(self):
-        """
-        Username is the PSID
-        """
-        #return self.idnumber
-        if self._grade in ['6', '7', '8', '9', '10', '11', '12']:
-            return self.idnumber
-        mapping = ssis_synctree_settings[STUDENT_PSIDUSERNAME_MAPPINGS].get(self.idnumber)
-        return (self.name + self._year_of_graduation).lower().replace(' ', '').replace('-', '') if not mapping else mapping
 
     @property
     def parents(self):
@@ -148,6 +148,10 @@ class AutosendStaff(BaseStaff):
     @property
     def lastname(self):
         return self.lastfirst.split(',')[0].strip()
+
+    @property
+    def mrbs_editor(self):
+        return True
 
     @property
     def _cohorts(self):

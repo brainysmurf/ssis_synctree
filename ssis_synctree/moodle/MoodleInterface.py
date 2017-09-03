@@ -573,7 +573,7 @@ class MoodleInterface(MoodleInter):
                             and_(
                                 RoleAssignment.contextid == self.SYSTEM_CONTEXT,
                                 RoleAssignment.roleid == self.MRBS_EDITOR_ROLE,
-                                not_(User.idnumber.like(''))
+                                not_(User.idnumber == '')
                             )
                         )
         for item in statement.all():
@@ -583,7 +583,7 @@ class MoodleInterface(MoodleInter):
         user = self.wrap_no_result(self.get_user_from_idnumber, user_idnumber)
         if not user:
             # no such user, don't do it!
-            return
+            return unsuccessful_result(method="db.add_mrbs_editor", info="User {} does not exist".format(user_idnumber))
 
         now = time_now()
         self.insert_table(
@@ -596,6 +596,8 @@ class MoodleInterface(MoodleInter):
             itemid=0,
             sortorder=0,
             timemodified=now)
+
+        return successful_result(method='db.add_mrbs_editor', info="User {} is now an mrbs editor".format(user_idnumber))
 
     def get_user_schoolid(self, user):
         obj = self.get_user_custom_profile_field(user, 'schoolid')
@@ -894,6 +896,11 @@ class MoodleInterface(MoodleInter):
                 select_from(Group).\
                     join(Course, Course.id == Group.courseid)
         return statement.all()
+
+    def set_group_name_from_idnumber(self, idnumber, new_name):
+        with self.db_session() as session:
+            item = session.query(Group).filter_by(idnumber).one()
+            item.name = new_name
 
     def clear_active_timetable_data(self):
         with self.db_session() as session:

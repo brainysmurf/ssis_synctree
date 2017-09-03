@@ -68,6 +68,9 @@ class MoodleParentsImporter(MoodleImporter):
 
 class MoodleStaffImporter(MoodleImporter):
     def reader(self):
+
+        mrbs_editors = [u.idnumber for u in self.get_mrbs_editors()]
+
         for cohort in ['teachersALL', 'supportstaffALL']:
             for user in self.users_enrolled_in_this_cohort(cohort):
                 yield {
@@ -76,7 +79,8 @@ class MoodleStaffImporter(MoodleImporter):
                     'lastname':user.lastname,
                     'username':user.username,
                     'email': user.email,
-                    'auth': user.auth
+                    'auth': user.auth,
+                    'mrbs_editor': user.idnumber in mrbs_editors
                 }
 
 

@@ -1,5 +1,6 @@
 import sys
 from unittest.mock import Mock
+import time
 
 def time_now():
     """

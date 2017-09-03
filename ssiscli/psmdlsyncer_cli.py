@@ -133,13 +133,14 @@ def psmdlsyncer_inspect(ctx):
         objects = subbranch.find_all(bywhat)
         if objects is None:
             print("Not any of those objects")
-            return
+            return None
         if len(objects) == 1:
             tree(objects[0].idnumber)
+            return [objects[0]]
         else:
-            for student in objects:
-                ret.append(student)
-                print(student._description)
+            for obj in objects:
+                ret.append(obj)
+                print(obj._description)
         return ret
 
     def course(what, subbranch=None):
@@ -155,6 +156,44 @@ def psmdlsyncer_inspect(ctx):
                 ret.append(course)
                 print(course._description)
         return ret
+
+    def family(five):
+        for subbranch in [(p.staff, p.parents, p.students), (m.staff, m.parents, m.students)]:
+            print("====STAFF=====")
+            for i in range(2):
+                print(subbranch[0].find_all(f'idnumber:{five}{i}'))
+            print("====PARENTS===")
+            for i in range(2):
+                print(subbranch[1].find_all(f'idnumber:{five}{("P" * (i+1))}'))
+            print('====STUDENTS==')
+            for i in range(2, 10):
+                print(subbranch[2].find_all(f'idnumber:{five}{i}'))
+
+    def in_cohorts(idnumber, subbranch=tree.autosend.cohorts):
+        ret = []
+        for cohort in subbranch.idnumbers:
+            if idnumber in subbranch.get(cohort).members:
+                ret.append(cohort)
+        return ret
+
+    def compare_cohorts(idnumber):
+        print("AUTOSEND")
+        print(', '.join(sorted(in_cohorts(idnumber, subbranch=tree.autosend.cohorts))))
+        print("MOODLE")
+        print(', '.join(sorted(in_cohorts(idnumber, subbranch=tree.moodle.cohorts))))
+
+    def random_stu_idnumber(grade=None):
+        import random
+
+        if grade is None:
+            idnumbers = tree.autosend.students.idnumbers
+            return random.choice(list(idnumbers))
+        else:
+            idnumbers = []
+            for student in tree.autosend.students.get_objects():
+                if str(student._grade) == str(grade):
+                    idnumbers.append(student.idnumber)
+            return random.choice(idnumbers)
 
     compare = lambda idnumber: tree(idnumber)
 

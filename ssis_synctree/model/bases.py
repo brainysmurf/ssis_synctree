@@ -81,6 +81,10 @@ class BaseGroup(Base):
 class BaseCohort(Base):
     __slots__ = []
 
+    @property
+    def _description(self):
+        return ", ".join(self.members)
+
 
 class BaseEnrollments(Base):
     __slots__ = []
