@@ -45,6 +45,6 @@ if __name__ == "__main__":
                 print("Nope!: {}".format(groupname))
                 continue
             session.query(Group).filter(Group.id==current_groupid).update({'id': old_groupid})
-
+            session.query(BlockHomework).filter(BlockHomework.groupid==current_groupid).update({'groupid': old_groupid})
 
 
