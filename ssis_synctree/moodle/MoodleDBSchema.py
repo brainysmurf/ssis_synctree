@@ -742,9 +742,9 @@ class Capability(Base):
     riskbitmask = Column(BigInteger, nullable=False, server_default='0')
 
 class BlockHomework(Base):
-    __tablename__ = 'ssismdl_block_homework'
+    __tablename__ = 'ssismdl_block_homework_diary'
 
-    id = Column(BigInteger, primary_key=True, server_default="nextval('ssismdl_block_homework_id_seq'::regclass)")
+    id = Column(BigInteger, primary_key=True, server_default="nextval('ssismdl_block_homework_diary_id_seq'::regclass)")
     approved = Column(SmallInteger, nullable=False, index=True, server_default="0")
     userid = Column(BigInteger, index=True)
     courseid = Column(BigInteger, index=True)
@@ -758,19 +758,19 @@ class BlockHomework(Base):
     title = Column(Text)
 
 class BlockHomeworkAssignDate(Base):
-    __tablename__ = 'ssismdl_block_homework_assign_dates'
+    __tablename__ = 'ssismdl_block_homework_diary_assign_dates'
 
-    id = Column(BigInteger, primary_key=True, server_default="nextval('ssismdl_block_homework_assign_dates_id_seq'::regclass)")
+    id = Column(BigInteger, primary_key=True, server_default="nextval('ssismdl_block_homework_diary_assign_dates_id_seq'::regclass)")
     homeworkid = Column(BigInteger, nullable=False, index=True, server_default="0")
     date = Column(Text, nullable=False)
 
 class BlockHomeworkNote(Base):
-    __tablename__ = 'ssismdl_block_homework_notes'
+    __tablename__ = 'ssismdl_block_homework_diary_notes'
     __table_args__ = (
         Index('ssismdl_blochomenote_homu2_uix', 'homeworkid', 'userid', unique=True),
     )
 
-    id = Column(BigInteger, primary_key=True, server_default="nextval('ssismdl_block_homework_notes_id_seq'::regclass)")
+    id = Column(BigInteger, primary_key=True, server_default="nextval('ssismdl_block_homework_diary_notes_id_seq'::regclass)")
     homeworkid = Column(BigInteger, nullable=False, index=True)
     userid = Column(BigInteger, nullable=False, index=True)
     notes = Column(Text)
