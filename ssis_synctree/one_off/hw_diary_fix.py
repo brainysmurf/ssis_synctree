@@ -21,13 +21,13 @@ def output_current_homework(moodle):
 if __name__ == "__main__":
 
     moodle = MoodleDB()
-    output_current_homework(moodle)
+    #output_current_homework(moodle)
 
     old_groups = {}
     with open('group_ids_old.txt') as old_file:
         reader = csv.reader(old_file, delimiter=" ")
         for row in reader:
-            old_groups[row[1]] = row[0]
+            old_groups[" ".join(row[1:])] = row[0]
 
     new_groups = {}
     with moodle.db_session() as session:
@@ -42,7 +42,7 @@ if __name__ == "__main__":
         for groupname, current_groupid in new_groups.items():
             old_groupid = old_groups.get(groupname)
             if old_groupid is None:
-                print("Nope!")
+                print("Nope!: {}".format(groupname))
                 continue
             session.query(Group).filter(Group.id==current_groupid).update({'id': old_groupid})
 
