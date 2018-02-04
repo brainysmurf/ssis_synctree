@@ -11,8 +11,8 @@ class Communicate:
         self.receivers = ssis_synctree_settings.get('COMMUNICATE', 'receivers').split(',')
 
         self.message = """
-From: <""" + sender + """>
-To: <""" + "><".join(recievers) + """>
+From: <""" + self.sender + """>
+To: <""" + "><".join(self.receivers) + """>
 MIME-Version: 1.0
 Content-type: text/html
 Subject: Test
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     import synctree, ssis_synctree
     from synctree.settings import setup_settings
     setup_settings(ssis_synctree)
-    
+
     com = Communicate()
     com.compose('hi')
     com.send()
