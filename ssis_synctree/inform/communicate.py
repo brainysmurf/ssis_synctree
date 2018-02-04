@@ -23,6 +23,7 @@ Subject: Test
         self.message += html
 
     def send(self):
+        import smtplib
         server = smtplib.SMTP(self.host)
         result = server.sendmail(self.sender, self.receivers, self.message)
         if result is not {}:
