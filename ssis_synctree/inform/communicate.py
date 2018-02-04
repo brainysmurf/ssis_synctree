@@ -31,6 +31,10 @@ Subject: Test
 
 if __name__ == "__main__":
 
+    import synctree, ssis_synctree
+    from synctree.settings import setup_settings
+    setup_settings(ssis_synctree)
+    
     com = Communicate()
     com.compose('hi')
     com.send()
