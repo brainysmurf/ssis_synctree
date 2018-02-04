@@ -7,12 +7,12 @@ class Communicate:
 
         self.host = ssis_synctree_settings.get("COMMUNICATE", 'smtp')
 
-        self.sender = ssis_synctree_settings.get('COMMUNICATE', 'receivers')
+        self.sender = ssis_synctree_settings.get('COMMUNICATE', 'sender')
         self.receivers = ssis_synctree_settings.get('COMMUNICATE', 'receivers').split(',')
 
         self.message = """
 From: <""" + self.sender + """>
-To: <""" + "><".join(self.receivers) + """>
+To: <""" + ">,<".join(self.receivers) + """>
 MIME-Version: 1.0
 Content-type: text/html
 Subject: Test
@@ -37,5 +37,5 @@ if __name__ == "__main__":
     setup_settings(ssis_synctree)
 
     com = Communicate()
-    com.compose('hi')
+    com.compose('<b>hi</b>')
     com.send()
