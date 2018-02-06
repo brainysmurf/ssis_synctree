@@ -59,14 +59,13 @@ def psmdlsyncer_launch(ctx):
     """
     Runs and executes inform methods
     """
-
-    # from hanging_threads import start_monitoring
-    # monitoring_thread = start_monitoring(seconds_frozen=10, tests_per_second=10)
+    from ssis_synctree.inform.communicate import Communicate
 
     template = 'ssis_synctree.templates.moodle_template.MoodleFullTemplate'
     for synctree_context in synctree_contexts():
         # Cycle through them, and clear them to save memory
         ctx.invoke(psmdlsyncer_main, synctree_context=synctree_context, template=template)
+
 
     # Import the template which will give us the reporter logs
     from synctree.utils import class_string_to_class
@@ -108,6 +107,11 @@ def psmdlsyncer_launch(ctx):
 
     with open('/tmp/html.html', 'w') as file_:
         file_.write(converted)
+
+    if ctx.obj.mock:
+        Communicate('sync_mocked', {"output": converted})
+    else:
+        Communicate('sync_succeeded', {"output": converted})
 
 
 @psmdlsyncer_entry.command('inspect')
@@ -344,3 +348,16 @@ def psmdlsyncer_main(obj, synctree_context, read_from_store, write_to_store, tem
         return None
 
     return tree
+
+
+@psmdlsyncer_entry.command('test_emailer')
+@click.pass_obj
+def psmdlsyncer_testemailer(obj):
+    # import ssis_synctree
+    # from synctree.settings import setup_settings
+    # setup_settings(ssis_synctree)
+
+    from ssis_synctree.inform.communicate import Communicate
+
+    Communicate()
+
