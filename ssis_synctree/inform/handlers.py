@@ -4,11 +4,14 @@ from psmdlsyncer.utils.Namespace import NS
 from psmdlsyncer.settings import config_get_section_attribute
 from psmdlsyncer.utils.Utilities import get_head_of_grade
 
+
 def inform_admin(admin_email):
     pass
 
+
 def reinform_new_parent(family):
     pass
+
 
 def inform_new_student(student):
     path_to_templates = config_get_section_attribute('DIRECTORIES', 'path_to_templates')
@@ -34,8 +37,8 @@ def inform_new_student(student):
     email.add_bcc('lcssisadmin@student.ssis-suzhou.net')
     email.add_bcc('jacobusgubbels@ssis-suzhou.net')
     email.define_fields(sf)
-
     email.send()
+
 
 def inform_new_parent(parent):
     """
@@ -60,6 +63,7 @@ def inform_new_parent(parent):
     email.define_field('salutation', 'Dear Parent')
 
     email.send()
+
 
 def inform_parent_username_changed(parent, password):
     """

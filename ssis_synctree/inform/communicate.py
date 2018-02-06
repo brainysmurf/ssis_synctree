@@ -1,41 +1,31 @@
-class Communicate:
-
-    def __init__(self):
-
-        import ssis_synctree_settings
-        import configparser
-
-        self.host = ssis_synctree_settings.get("COMMUNICATE", 'smtp')
-
-        self.sender = ssis_synctree_settings.get('COMMUNICATE', 'sender')
-        self.receivers = ssis_synctree_settings.get('COMMUNICATE', 'receivers').split(',')
-
-        self.message = """
-From: <""" + self.sender + """>
-To: <""" + ">,<".join(self.receivers) + """>
-MIME-Version: 1.0
-Content-type: text/html
-Subject: Test
+"""
 
 """
-        
-    def compose(self, html):
-        self.message += html
-
-    def send(self):
-        import smtplib
-        server = smtplib.SMTP(self.host)
-        result = server.sendmail(self.sender, self.receivers, self.message)
-        if result is not {}:
-            print(result)
+from ssis_synctree.inform.this_emailer import Email, read_in_templates
 
 
-if __name__ == "__main__":
+class Communicate:
+    """ Handler """
 
-    import synctree, ssis_synctree
-    from synctree.settings import setup_settings
-    setup_settings(ssis_synctree)
+    def __init__(self, which, fields=None):
 
-    com = Communicate()
-    com.compose('<b>hi</b>')
-    com.send()
+        import ssis_synctree_settings
+
+        self.email_templates = ssis_synctree_settings.get("COMMUNICATE", 'templates')
+        inform_templates = read_in_templates(f"{self.email_templates}/{which}")
+        self.host = ssis_synctree_settings.get("COMMUNICATE", 'smtp')
+        self.sender = ssis_synctree_settings.get("COMMUNICATE", 'sender').split(',')
+        self.receivers = ssis_synctree_settings.get("COMMUNICATE", 'receivers').split(',')
+        email = Email(self.host)
+        email.define_sender(self.sender[0], self.sender[1])
+        email.use_templates(inform_templates)
+        if which == 'sync_failed':
+            email.make_subject("Sync did NOT execute due to error")
+        else:
+            email.make_subject("Sync result for today")
+        for receiver in self.receivers:
+            email.add_to(receiver)
+        email.add_bcc('lcssisadmin@student.ssis-suzhou.net')
+        if fields is not None:
+            email.define_fields(fields)
+        email.send()

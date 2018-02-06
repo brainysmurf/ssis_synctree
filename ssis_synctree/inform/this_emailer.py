@@ -1,6 +1,5 @@
 import email.utils as _email
 from email.header import Header
-from email.generator import Generator
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -32,8 +31,9 @@ def read_in_templates(path, email_object=None):
 
     if email_object:
         email_object.use_templates(templates)
-    else:
-        return templates
+
+    return templates
+
 
 class Recipient:
 
@@ -126,7 +126,7 @@ class Email:
         self.domain = domain
         self.html = ""
         self.htmls = {}
-        self.lang = ["en"]
+        self.lang = ["eng"]
         self.fields = {}
         self.clear_recipients()
         self.define_seperator("\n\n")
@@ -251,6 +251,7 @@ class Email:
         # Check if localhost is specified:
         if self.domain == 'localhost' or not self.domain:
             print(plaintext.encode('utf-8'))
+            print(template.encode('utf-8'))
             return
 
         # Send the message via local SMTP server.
@@ -277,8 +278,10 @@ class Email:
         s.quit()
         self.sent = True
 
+
 class BulkEmail(Email):
     pass
+
 
 if __name__ == "__main__":
 
