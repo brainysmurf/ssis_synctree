@@ -114,6 +114,67 @@ def psmdlsyncer_launch(ctx):
         Communicate('sync_succeeded', {"output": converted})
 
 
+@psmdlsyncer_entry.command('rollover')
+@click.pass_context
+def psmdlsyncer_rollover(ctx):
+    """
+    Runs and executes inform methods
+    """
+    from ssis_synctree.inform.communicate import Communicate
+
+    template = 'ssis_synctree.templates.moodle_template.RolloverTemplate'
+    for synctree_context in synctree_contexts():
+        # Cycle through them, and clear them to save memory
+        ctx.invoke(psmdlsyncer_main, synctree_context=synctree_context, template=template)
+
+
+    # Import the template which will give us the reporter logs
+    from synctree.utils import class_string_to_class
+    template_inst = class_string_to_class(template)()
+    output = []
+    reporter_log = template_inst.reporter._log
+
+    shared_idnumber_subbranches = ['students', 'parents', 'teachers', 'parents_child_link', 'enrollments']
+    unique_idnumber_subbranches = ['cohorts courses groups']
+
+    info_by_family_ids = defaultdict(lambda : defaultdict(list))
+    for subbranch in shared_idnumber_subbranches:
+        for idnumber, values in reporter_log[subbranch].items():
+            family_id = idnumber[:4]
+            info_by_family_ids[family_id][idnumber].extend(values)
+
+    for family_id in sorted(info_by_family_ids):
+        output.append('\n\n' + hues.huestr(f"{family_id}x ").white.bg_magenta.bold.colorized)
+        for idnumber, values in info_by_family_ids[family_id].items():
+            if values:
+                _, action, _ = values[0]
+                if hasattr(action, 'name'):
+                    output.append(hues.huestr(f"\n {action.obj.name} ({action.obj.idnumber}) ").magenta.bold.colorized)
+                else:
+                    output.append(hues.huestr(f"\n {action.obj.idnumber} ").magenta.bold.colorized)
+                output.extend([v[0] for v in values])
+
+    for subbranch in unique_idnumber_subbranches:
+        if reporter_log[subbranch]:
+            output.append('\n\n' + hues.huestr(f" {subbranch.upper()} ").white.bg_magenta.bold.colorized)
+        for idnumber, values in reporter_log[subbranch].items():
+            if values:
+                _, action, _ = values[0]
+                output.append(hues.huestr(f"\n {action.obj.name} ({action.obj.idnumber}) ").magenta.bold.colorized)
+                output.extend([v[0] for v in values])
+
+    converter = MyAnsi2HTMLConverter(inline=True, dark_bg=False)
+    converted = converter.convert(output)
+
+    with open('/tmp/html.html', 'w') as file_:
+        file_.write(converted)
+
+    if ctx.obj.mock:
+        Communicate('sync_mocked', {"output": converted})
+    else:
+        Communicate('sync_succeeded', {"output": converted})
+
+
 @psmdlsyncer_entry.command('inspect')
 @click.pass_context
 def psmdlsyncer_inspect(ctx):

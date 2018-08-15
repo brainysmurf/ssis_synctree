@@ -248,6 +248,106 @@ class FullReporter(LoggerReporter):
             pass
 
 
+class RolloverTemplate(MoodleFirstRunTemplate):
+    _reporter = FullReporter
+
+    def update_user_profile(self, action, column):
+        who = action.dest
+        to_ = getattr(action.source, column)
+        kwargs = {}
+        mapped_column = self.user_column_map.get(column) or column
+        kwargs[mapped_column] = to_
+        return self.moodledb.update_table('users', where={'idnumber': who.idnumber}, **kwargs)
+
+    def update_staff_auth(self, action):
+        return self.update_user_profile(action, 'auth')
+
+    def update_students_auth(self, action):
+        return self.update_user_profile(action, 'auth')
+
+    def update_parents_auth(self, action):
+        return self.update_user_profile(action, 'auth')
+
+    def update_staff_firstname(self, action):
+        return self.update_user_profile(action, 'firstname')
+
+    def update_students_firstname(self, action):
+        return self.update_user_profile(action, 'firstname')
+
+    def update_parents_firstname(self, action):
+        return self.update_user_profile(action, 'firstname')
+
+    def update_staff_lastname(self, action):
+        return self.update_user_profile(action, 'lastname')
+
+    def update_students_lastname(self, action):
+        return self.update_user_profile(action, 'lastname')
+
+    def update_parents_lastname(self, action):
+        return self.update_user_profile(action, 'lastname')
+
+    def update_staff_email(self, action):
+        return self.update_user_profile(action, 'email')
+
+    def update_students_email(self, action):
+        return self.update_user_profile(action, 'email')
+
+    def update_parents_email(self, action):
+        return self.update_user_profile(action, 'email')
+
+    def update_staff_username(self, action):
+        return self.update_user_profile(action, 'username')
+
+    def update_students_username(self, action):
+        return self.update_user_profile(action, 'username')
+
+    def update_parents_username(self, action):
+        return self.update_user_profile(action, 'username')
+
+    def update_staff_homeroom(self, action):
+        return self.update_user_profile(action, 'homeroom')
+
+    def update_students_homeroom(self, action):
+        return self.update_user_profile(action, 'homeroom')
+
+    def update_parents_homeroom(self, action):
+        return self.update_user_profile(action, 'homeroom')
+
+    def update_staff_name(self, action):
+        return dropped_action("Users don't have 'name' in profile")
+
+    def update_students_name(self, action):
+        return dropped_action("Users don't have 'name' in profile")
+
+    def update_parents_name(self, action):
+        return dropped_action("Users don't have 'name' in profile")
+
+    def old_enrollments(self, action):
+        """
+        This is received when a new user has enrollments not previously enrolled in anything
+        Should loop through all the available enrollments
+        """
+        user_idnumber = action.dest.idnumber
+        enrollments = action.dest
+        ret = []
+        for i, course in enumerate(enrollments.courses):
+            group = enrollments.groups[i]
+            role = enrollments.roles[i]
+            if not group:
+                ret.append(return_unimplemented_result(info=f"Blank group, not de-enrolling {user_idnumber} from {course}"))
+                continue
+            ret.append(self.php.unenrol_user_from_course(user_idnumber, course))
+        return ret
+
+    def old_groups(self, action):
+        return self.php.delete_group(action.idnumber, action.obj.course)
+
+    def remove_enrollments_courses_from_moodle(self, action):
+        user_idnumber = action.dest.idnumber
+        course = action.value
+        return self.php.unenrol_user_from_course(user_idnumber, course)
+
+
 class MoodleFullTemplate(MoodleFirstRunTemplate):
 
     _reporter = FullReporter
@@ -446,12 +546,12 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
         Since unenrollments from courses can be very disruptive, 
         this handler unenrols from groups instead.
 
-        # user_idnumber = action.dest.idnumber
-        # course = action.value
-        # return self.php.unenrol_user_from_course(user_idnumber, course)
-
+        user_idnumber = action.dest.idnumber
+        course = action.value
+        return self.php.unenrol_user_from_course(user_idnumber, course)
         """
-        # TODO: Make this a setting?
+                
+        TODO: Make this a setting?
         return dropped_action(method="Unenrolling is completely off")
 
         # Previous build:
