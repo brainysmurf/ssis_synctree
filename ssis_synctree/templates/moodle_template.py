@@ -551,7 +551,7 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
         return self.php.unenrol_user_from_course(user_idnumber, course)
         """
                 
-        TODO: Make this a setting?
+        # TODO: Make this a setting?
         return dropped_action(method="Unenrolling is completely off")
 
         # Previous build:
