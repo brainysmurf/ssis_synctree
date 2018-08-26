@@ -22,7 +22,7 @@ def psmdlsyncer_entry(ctx, template, mock, tutorial):
 
 
 def synctree_contexts():
-    return ['newcohorts', 'newpeople', 'newprofiles', 'newgroups', 'newenrollments']
+    return ['newcohorts', 'addcohorts', 'newpeople', 'newprofiles', 'newgroups', 'newenrollments']
 
 
 @psmdlsyncer_entry.command('run')
