@@ -234,10 +234,8 @@ class MoodleEnrollmentsImporter(MoodleImporter):
             group = schedule.group
             role = schedule.role
 
-            # Ignore any enrollment that has no group association
             # And ignore any enrollment that doesn't have predefined roles
-            if not group:
-                continue
+
             if not role in ['student', 'parent', 'editingteacher']:
                 continue
 

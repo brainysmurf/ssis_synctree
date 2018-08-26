@@ -33,10 +33,19 @@ class AutosendImporter(CSVImporter):
                 files.append(obj)
         files.sort(key=lambda o: o['version'])
         if len(files) == 0:
-            print("No candidates found for {}".format(starting_name))
-            #exit()
+            from ssis_synctree.inform.communicate import Communicate
+            Communicate('sync_failed', {
+                "why": f"Missing files for {starting_name}"
+            })
+            exit()
         winner = files[-1]
         ret = os.path.join(parent_dir, winner['file_'])
+        if os.path.getsize(ret) <= 1:
+            from ssis_synctree.inform.communicate import Communicate
+            Communicate('sync_failed', {
+                "why": f"Autosend file {ret} is empty!"
+            })
+            exit()
         return ret
 
 
