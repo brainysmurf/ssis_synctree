@@ -345,7 +345,7 @@ class RolloverTemplate(MoodleFirstRunTemplate):
     def remove_enrollments_courses_from_moodle(self, action):
         user_idnumber = action.dest.idnumber
         course = action.value
-        if course.startswith('ENGLISH') and course.endwith('ALL'):
+        if course.startswith('ENGLISH') and course.endswith('ALL'):
             return dropped_action("Not removing from " + course + " course")
         return self.php.unenrol_user_from_course(user_idnumber, course)
 
