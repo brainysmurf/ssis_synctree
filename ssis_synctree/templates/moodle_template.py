@@ -594,6 +594,10 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
     def update_groups_name(self, action):
         return self.moodledb.update_table('groups', where=dict(idnumber=action.idnumber), name=action.value)
 
+    def remove_cohorts_members_from_moodle(self, action):
+        return dropped_action(method="Not removing anyone from any cohort anymore")
+
+
 class HuesReporter:
 
     def will_start(self):
