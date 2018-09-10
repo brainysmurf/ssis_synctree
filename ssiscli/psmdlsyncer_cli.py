@@ -66,7 +66,6 @@ def psmdlsyncer_launch(ctx):
         # Cycle through them, and clear them to save memory
         ctx.invoke(psmdlsyncer_main, synctree_context=synctree_context, template=template)
 
-
     # Import the template which will give us the reporter logs
     from synctree.utils import class_string_to_class
     template_inst = class_string_to_class(template)()
@@ -409,6 +408,26 @@ def psmdlsyncer_main(obj, synctree_context, read_from_store, write_to_store, tem
         return None
 
     return tree
+
+
+@psmdlsyncer_entry.command('course_mappings')
+@click.pass_context
+def psmdlsyncer_course_mappings(ctx):
+    #psmdlsyncer_main('none', False, False, 'ssis_synctree.templates.moodle_template.MoodleFullTemplate', False, False)
+    tree = ctx.invoke(psmdlsyncer_manual_context, branches='autosend moodle', subbranches='courses', template=None, inspect=False)
+    from IPython import embed;embed()
+    print('PowerSchool -> Moodle')
+    for course_idnumber in tree.autosend.courses.idnumbers:
+        course = tree.autosend.courses.get(course_idnumber)
+        in_moodle = 'yup' if tree.moodle.courses.get(course_idnumber) else 'NOPE'
+        for shortcode in course._shortcodes:
+            print(f"{shortcode}: {course.idnumber} {in_moodle}")
+    print('Moodle <- Powerschool')
+    for course_idnumber in tree.autosend.courses.idnumbers:
+        course = tree.autosend.courses.get(course_idnumber)
+        output = ' '.join(course._shortcodes)
+        for shortcode in course._shortcodes:
+            print(f"{shortcode}: {course.idnumber}")
 
 
 @psmdlsyncer_entry.command('test_emailer')
