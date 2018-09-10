@@ -589,7 +589,8 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
         return self.php.add_user_to_group(action.value, action.idnumber)
 
     def remove_groups_members_from_moodle(self, action):
-        return self.php.remove_user_from_group(action.value, action.idnumber)
+        return dropped_action(method="Not removing anyone from any group anymore")
+        #return self.php.remove_user_from_group(action.value, action.idnumber)
 
     def update_groups_name(self, action):
         return self.moodledb.update_table('groups', where=dict(idnumber=action.idnumber), name=action.value)
