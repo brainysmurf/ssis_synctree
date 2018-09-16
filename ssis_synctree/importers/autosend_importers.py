@@ -281,7 +281,7 @@ class AutosendGroupsImporter(DefaultImporter):
             student_idnumber = item.student_idnumber
             teacher_idnumber = item.staff_idnumber
             course = item.course
-            group = item.group
+            group = item.group.replace('-', '')
             grade = item.grade
             section = item.section
 
