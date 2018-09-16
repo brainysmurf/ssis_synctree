@@ -265,7 +265,7 @@ class AutosendScheduleImporter(TranslatedCSVImporter):
         grade = student._grade
         kwargs_in['grade'] = grade
         kwargs_in['_old_group'] = "{}-{}-{}".format(staff.lastname.lower(), short.lower(), kwargs_in['section'].lower())
-        kwargs_in['group'] = "{}-{}-{}-{}".format(staff.lastname.lower().replace('-', ''), short.lower(), grade, kwargs_in['section'].lower())
+        kwargs_in['group'] = "{}-{}-{}-{}".format(staff.lastname.lower().replace("'", ''), short.lower(), grade, kwargs_in['section'].lower())
         return kwargs_in
 
 
@@ -281,7 +281,7 @@ class AutosendGroupsImporter(DefaultImporter):
             student_idnumber = item.student_idnumber
             teacher_idnumber = item.staff_idnumber
             course = item.course
-            group = item.group.replace('-', '')
+            group = item.group
             grade = item.grade
             section = item.section
 
