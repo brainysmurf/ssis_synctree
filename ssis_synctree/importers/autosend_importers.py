@@ -265,7 +265,7 @@ class AutosendScheduleImporter(TranslatedCSVImporter):
         grade = student._grade
         kwargs_in['grade'] = grade
         kwargs_in['_old_group'] = "{}-{}-{}".format(staff.lastname.lower(), short.lower(), kwargs_in['section'].lower())
-        kwargs_in['group'] = "{}-{}-{}-{}".format(staff.lastname.lower(), short.lower(), grade, kwargs_in['section'].lower())
+        kwargs_in['group'] = "{}-{}-{}-{}".format(staff.lastname.lower().replace('-', ''), short.lower(), grade, kwargs_in['section'].lower())
         return kwargs_in
 
 
