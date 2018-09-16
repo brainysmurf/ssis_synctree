@@ -294,7 +294,7 @@ class AutosendGroupsImporter(DefaultImporter):
             members = [student_idnumber, teacher_idnumber]
             members.extend(sobj.parents)
 
-            name = f"{tobj.lastname.title()} course{course.upper()} sec{section} grade{grade}"
+            name = f"{tobj.lastname.title().replace("'", '')} course{course.upper()} sec{section} grade{grade}"
 
             yield {
                 'idnumber': group,

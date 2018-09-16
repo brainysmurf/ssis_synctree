@@ -150,7 +150,7 @@ class MoodleFirstRunTemplate(MoodleTemplate):
         else:
             # Nothing with previous username
             if existing_idnumber:
-                return dropped_action(f"Why new already one: {action.source.idnumber}!")
+                return dropped_action(method=f"Why new already one: {action.source.idnumber}!")
             else:
                 # 
                 # Nothing there yet, proceed as normal
@@ -334,7 +334,7 @@ class RolloverTemplate(MoodleFirstRunTemplate):
             group = enrollments.groups[i]
             role = enrollments.roles[i]
             if not group:
-                ret.append(dropped_action(info=f"Blank group, not de-enrolling {user_idnumber} from {course}"))
+                ret.append(dropped_action(method=f"Blank group, not de-enrolling {user_idnumber} from {course}"))
                 continue
             ret.append(self.php.unenrol_user_from_course(user_idnumber, course))
         return ret
@@ -503,7 +503,7 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
             group = enrollments.groups[i]
             role = enrollments.roles[i]
             if not group:
-                ret.append(dropped_action(info=f"Unknown group, not enrolling {user_idnumber} from {course}"))
+                ret.append(dropped_action(method=f"Unknown group, not enrolling {user_idnumber} from {course}"))
                 continue
             ret.append(self.php.enrol_user_into_course(user_idnumber, course, group, group, role))
         return ret
@@ -520,13 +520,13 @@ class MoodleFullTemplate(MoodleFirstRunTemplate):
             group = enrollments.groups[i]
             role = enrollments.roles[i]
             if not group:
-                ret.append(dropped_action(info=f"Blank group, not de-enrolling {user_idnumber} from {course}"))
+                ret.append(dropped_action(method=f"Blank group, not de-enrolling {user_idnumber} from {course}"))
                 continue
             ret.append(self.php.unenrol_user_from_course(user_idnumber, course))
         return ret
 
     def old_groups(self, action):
-        return dropped_action(info="Do not delete groups")
+        return dropped_action(method="Do not delete groups")
         #return self.php.delete_group(action.idnumber, action.obj.course)
 
     def add_enrollments_courses_to_moodle(self, action):
