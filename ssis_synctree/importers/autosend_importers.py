@@ -211,8 +211,6 @@ class AutosendCoursesImporter(TranslatedCSVImporter):
             created_list.append( new_value )
 
     def kwargs_preprocessor(self, kwargs_in):
-        if kwargs_in['idnumber'].startswith('X'):
-            return None
         orig_shortcode = kwargs_in['idnumber']
 
         # It woud be best to output some kind of error or reporting
@@ -245,7 +243,7 @@ class AutosendScheduleImporter(TranslatedCSVImporter):
         Translate the course shortcode
         """
         student = self._branch.students.get(kwargs_in['student_idnumber'])
-        if student is None or kwargs_in.get('course').startswith('X'):
+        if student is None:
             # TODO: Do I need to filter out if no student?
             return None
         overridden = self._branch.courses.cache.get(kwargs_in['course'])
